@@ -343,7 +343,177 @@
    * a fix that snaps backwards — off-course scatter, or the course doubling
    * back on itself — cannot un-finish a stage that was already completed.
    */
+  /**
+   * Walks the whole track once, deciding which stage each fix belongs to.
+   *
+   * The stages are ridden 1 through 6 in sequence, and every change of stage
+   * involves a long stop in town to reload and eat. That stop is a far better
+   * transition signal than the clock: it is behaviour rather than intention,
+   * and it stays correct when the ride runs hours off plan. So the stage only
+   * advances when a stop qualifies — long enough, close enough to town, and
+   * with most of the current stage already behind him.
+   *
+   * Position then confirms: each fix is snapped inside the stage the walk
+   * believes it is on. Time is not consulted at all here; it is only a
+   * fallback for labelling before any fixes exist.
+   */
+  const HUB = CFG.hub || { lat: 39.4817, lon: -106.0384, radiusMiles: 3 };
+  const STOP_MS = (CFG.transitionStopMinutes || 30) * 60000;
+  const STOP_RADIUS = CFG.stopRadiusMiles || 0.35;
+  const STAGE_FRACTION = CFG.minStageFractionBeforeTransition ?? 0.6;
+
+  let walkCache = { count: -1, result: null };
+
+  function walkFixes(fixes) {
+    if (!course.loaded || !course.stageSpans.length) return null;
+    if (walkCache.count === fixes.length && walkCache.result) return walkCache.result;
+
+    const spans = course.stageSpans;
+    const spanOf = (n) => spans.find((x) => x.stage === n);
+    const nearHub = (p) =>
+      haversineMiles({ lat: p.lat, lon: p.lon }, { lat: HUB.lat, lon: HUB.lon }) <= HUB.radiusMiles;
+
+    let stage = 1;
+    let prevMile = null;
+    let anchor = null; // first fix of the current stationary cluster
+    let counted = false; // this cluster has already advanced the stage
+    let maxMileInStage = null;
+
+    const resolved = [];
+    const transitions = [];
+
+    for (const f of fixes) {
+      // Anything before the gun is him moving around town, not progress.
+      if (f.t * 1000 < START_MS) {
+        resolved.push({ t: f.t, id: f.id, mile: null, stage: null, stopped: false });
+        continue;
+      }
+
+      // --- stationary clustering ---
+      if (!anchor || haversineMiles(f, anchor) > STOP_RADIUS) {
+        anchor = f;
+        counted = false;
+      }
+      const stoppedMs = (f.t - anchor.t) * 1000;
+      const isStopped = stoppedMs >= 2 * PING_MS;
+
+      // --- transition test ---
+      const span = spanOf(stage);
+      const covered = span && maxMileInStage != null ? maxMileInStage - span.startMile : 0;
+      const enough = span ? covered >= STAGE_FRACTION * span.miles : false;
+
+      if (!counted && stage < CFG.stages.length && stoppedMs >= STOP_MS && nearHub(anchor) && enough) {
+        transitions.push({ stage: stage + 1, t: f.t, mile: maxMileInStage });
+        stage += 1;
+        counted = true;
+        maxMileInStage = null;
+        prevMile = spanOf(stage) ? spanOf(stage).startMile : prevMile;
+      }
+
+      // --- position, inside the stage the walk believes we are on ---
+      let best = null;
+      for (const n of [stage, stage + 1]) {
+        const sp = spanOf(n);
+        if (!sp) continue;
+        const lo = prevMile == null || n !== stage ? sp.startMile : Math.max(sp.startMile, prevMile - 1);
+        const hi = prevMile == null || n !== stage ? sp.endMile : Math.min(sp.endMile, prevMile + 25);
+        if (hi <= lo) continue;
+        const snap = snapWithin(f.lat, f.lon, lo, hi);
+        if (!snap) continue;
+        // The next stage has to fit dramatically better to win without a stop.
+        // That covers a transition stop too short to register, without letting
+        // a shared trailhead pull him forward a stage.
+        const score = snap.offMiles + (n === stage ? 0 : 1.0);
+        if (!best || score < best.score) best = { ...snap, score, stage: n };
+      }
+
+      // Which stage this stop sits after, decided by the walk rather than
+      // inferred from mileage later. The house is 1.1 miles into stage 4, so
+      // "has he covered any of the current stage" cannot tell a break after
+      // stage 3 from an early start on stage 4.
+      const qualifies = stoppedMs >= STOP_MS && nearHub(anchor);
+      const breakAfter = counted ? stage - 1 : qualifies && enough ? stage : null;
+
+      if (best && best.offMiles <= OFF_COURSE_MILES) {
+        if (best.stage !== stage) {
+          transitions.push({ stage: best.stage, t: f.t, mile: best.mile, byPosition: true });
+          stage = best.stage;
+          maxMileInStage = null;
+        }
+        prevMile = best.mile;
+        maxMileInStage = maxMileInStage == null ? best.mile : Math.max(maxMileInStage, best.mile);
+        resolved.push({ t: f.t, id: f.id, mile: best.mile, stage, stopped: isStopped, stoppedMs, breakAfter });
+      } else {
+        resolved.push({
+          t: f.t,
+          id: f.id,
+          mile: null,
+          stage: null,
+          offMiles: best ? best.offMiles : null,
+          stopped: isStopped,
+          stoppedMs,
+          breakAfter,
+        });
+      }
+    }
+
+    const result = { resolved, transitions, stage, lastStoppedMs: resolved.length ? resolved[resolved.length - 1].stoppedMs || 0 : 0 };
+    walkCache = { count: fixes.length, result };
+    return result;
+  }
+
   /** Highest stage number confirmed reached, used as a ratchet. */
+  /**
+   * The current position, phrased the way the readouts want it. A long stop
+   * near town between stages is a break, and named as one — but from the stop
+   * itself, not from the clock.
+   */
+  function currentFromWalk(fixes) {
+    const walk = walkFixes(fixes);
+    if (!walk) return null;
+    const last = [...walk.resolved].reverse().find((r) => r.mile != null);
+    const tail = walk.resolved[walk.resolved.length - 1];
+
+    if (!last) {
+      return tail
+        ? { mile: null, offMiles: tail.offMiles ?? 99, onCourse: false, stage: null, stageName: null, transfer: false }
+        : null;
+    }
+
+    // Between stages: stopped near town, long enough, with the stage's
+    // distance behind him. The label comes from the breaks list.
+    const span = course.stageSpans.find((x) => x.stage === last.stage);
+    const finishedStage = span && last.mile >= span.endMile - 0.3;
+    const parked = (tail.stoppedMs || 0) >= STOP_MS;
+    const atHub =
+      haversineMiles(
+        { lat: fixes[fixes.length - 1].lat, lon: fixes[fixes.length - 1].lon },
+        { lat: HUB.lat, lon: HUB.lon }
+      ) <= HUB.radiusMiles;
+
+    // Stopped in town between stages he is off the course line — the house
+    // sits beside mile 37, nowhere near where he just finished — so snapping
+    // reports him lost. Hold the last good position instead and name the
+    // break. Being at the house is not being off route.
+    const onBreak = parked && atHub;
+    // The transition fires during the stop, so by the time the label is read
+    // the walk has already advanced. Name the break after the stage he
+    // actually finished: if the current stage has no distance on it yet, he
+    // has not started it, and the break belongs to the one before.
+    const afterStage = tail.breakAfter != null ? tail.breakAfter : last.stage;
+    const br = onBreak ? CFG.breaks.find((b) => b.afterStage === afterStage) : null;
+
+    return {
+      mile: last.mile,
+      offMiles: 0,
+      onCourse: onBreak || tail.mile != null,
+      stage: last.stage,
+      stageName: (CFG.stages.find((s) => s.n === last.stage) || {}).name || null,
+      transfer: onBreak,
+      scheduled: br ? { label: br.label, kind: br.kind } : { label: 'Between stages', kind: 'stop' },
+    };
+  }
+
   /** Mileage of the most recent fix the walk has already resolved. */
   function previousMile(fixes) {
     for (let i = fixes.length - 1; i >= 0; i--) {
@@ -371,16 +541,15 @@
     // sound because the stages are ridden 1 through 6 with no variation —
     // rather than "a mileage threshold was crossed", which is not, because
     // consecutive stages share a trailhead and therefore a mileage.
+    const walk = walkFixes(fixes);
+    if (!walk) return [];
+
     const seen = new Map(); // stage -> { firstT, lastT, maxMile }
     let peak = -1;
     let floor = 0;
-    let prevMile = null;
-    for (const f of fixes) {
-      // Anything before the gun is him moving around town, not progress.
-      if (f.t * 1000 < START_MS) continue;
-      const r = resolvedOf(f, floor, prevMile);
-      if (!r || r.stage == null) continue;
-      prevMile = r.mile;
+    for (const r of walk.resolved) {
+      if (r.stage == null || r.mile == null) continue;
+      const f = { t: r.t };
       if (r.stage > floor) floor = r.stage;
       if (r.mile > peak) peak = r.mile;
       const span = spans.find((x) => x.stage === r.stage);
@@ -1019,17 +1188,9 @@
     $('position').textContent = `${last.lat.toFixed(5)}, ${last.lon.toFixed(5)}`;
 
     renderPings(fixes, now);
-    const elapsedH = (now - START_MS) / 3600000;
-    // The headline position must be resolved the same way the walk resolves
-    // every other fix — continuity included. Without the previous mileage it
-    // can pick a duplicate of the same place forty miles up the course, and
-    // the "along course" figure jumps backwards.
-    renderCourseReadout(
-      resolveFix(last.lat, last.lon, elapsedH, furthestStage(fixes), previousMile(fixes)),
-      fixes,
-      ago(age),
-      age > STALE_MS
-    );
+    // The headline comes from the same walk the rail uses, so the two can
+    // never disagree about which stage he is on.
+    renderCourseReadout(currentFromWalk(fixes), fixes, ago(age), age > STALE_MS);
 
     const help = [...points].reverse().find((p) => p.type === 'HELP');
     const cancelled = points.some((p) => p.type === 'HELP-CANCEL' && help && p.t > help.t);

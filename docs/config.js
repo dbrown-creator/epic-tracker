@@ -33,6 +33,26 @@ window.RACE_CONFIG = {
   // How often the page re-reads track.json.
   refreshSeconds: 60,
 
+  // Stage transitions are detected from behaviour, not the clock. Every stage
+  // change involves a long stop in town to reload gear and eat, sometimes to
+  // sleep — at the house for most of them, the Ice Rink lot between 5 and 6.
+  // Deliberately a radius around downtown rather than a fixed point at the
+  // house: the house is not a rule, the stopping is.
+  hub: {
+    lat: 39.4817,
+    lon: -106.0384,
+    radiusMiles: 3,
+  },
+  // A stop counts as a transition at this length. Shorter halts on course —
+  // filtering water, fixing a flat — are not transitions.
+  transitionStopMinutes: 30,
+  // How tightly fixes must cluster to count as stopped at all.
+  stopRadiusMiles: 0.35,
+  // ...and how much of the current stage must be behind him first, so the
+  // planned hour-and-a-quarter at the house 0.8 mi into stage 2 is not read
+  // as the start of stage 3.
+  minStageFractionBeforeTransition: 0.6,
+
   // Six traces that stay apart where the stages overlap. Drawn from the
   // quadrangle palette — woodland green, water blue, and the earths — rather
   // than saturated defaults. The red overprint is deliberately not in this
