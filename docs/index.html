@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mega Epic · Live Track</title>
+<meta name="description" content="Live satellite tracking for a solo, self-supported ride of the 217-mile Breck Epic course.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bitter:wght@500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="sheet">
+
+  <header class="titleblock">
+    <div class="titleblock__main">
+      <p class="eyebrow">Solo · Self-supported · No aid</p>
+      <h1 id="race-title">Mega Epic</h1>
+      <p class="subtitle" id="race-subtitle">Individual time trial · Breckenridge, Colorado</p>
+    </div>
+    <dl class="titleblock__meta">
+      <div><dt>Distance</dt><dd id="meta-distance">217 mi</dd></div>
+      <div><dt>Stages</dt><dd>6</dd></div>
+      <div><dt>Start</dt><dd id="meta-start">—</dd></div>
+      <div><dt>Source</dt><dd>SPOT Gen4</dd></div>
+    </dl>
+  </header>
+
+  <div id="alert" class="alert" hidden role="status"></div>
+
+  <main class="plate">
+
+    <section class="mapframe" aria-label="Live position map">
+      <div id="map"></div>
+      <div class="neatline" aria-hidden="true"></div>
+      <div class="basemap-toggle">
+        <button type="button" data-basemap="topo" class="is-active">Topo</button>
+        <button type="button" data-basemap="imagery">Satellite</button>
+      </div>
+      <p class="mapframe__empty" id="map-empty" hidden>Waiting on the first fix.</p>
+    </section>
+
+    <aside class="collar" aria-label="Tracking readouts">
+
+      <div class="readout readout--hero">
+        <p class="readout__label">Last fix</p>
+        <p class="readout__value" id="fix-age">—</p>
+        <p class="readout__sub" id="fix-time">No data yet</p>
+      </div>
+
+      <div class="pings">
+        <p class="readout__label">Pings, last two hours</p>
+        <div class="pings__row" id="ping-row" role="img" aria-label="Recent satellite fixes"></div>
+        <p class="readout__sub">One mark per expected 10-minute window</p>
+      </div>
+
+      <div class="grid2">
+        <div class="readout">
+          <p class="readout__label">Elapsed</p>
+          <p class="readout__value" id="elapsed">—</p>
+          <p class="readout__sub" id="elapsed-sub">of 58 h target</p>
+        </div>
+        <div class="readout">
+          <p class="readout__label">Tracked</p>
+          <p class="readout__value" id="distance">—</p>
+          <p class="readout__sub">straight lines between fixes</p>
+        </div>
+      </div>
+
+      <div class="readout">
+        <p class="readout__label">Position</p>
+        <p class="readout__value readout__value--sm" id="position">—</p>
+        <p class="readout__sub" id="fix-count">0 fixes on file</p>
+      </div>
+
+    </aside>
+  </main>
+
+  <section class="rail" aria-label="Planned schedule">
+    <h2 class="rail__head">Planned schedule <span>times are the plan, not a report</span></h2>
+    <ol class="rail__list" id="stage-rail"></ol>
+  </section>
+
+  <footer class="margin-note">
+    <p>Six stage courses ridden end to end as one continuous effort, starting half an hour behind the grand depart. No aid stations, no drop bags — resupply happens at the house the course runs past.</p>
+    <p class="margin-note__credit">Positions from a SPOT Gen4 satellite messenger, polled every few minutes. Gaps are normal: the device needs sky, and the trees on Aqueduct are thick.</p>
+  </footer>
+
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

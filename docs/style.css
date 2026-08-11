@@ -1,0 +1,406 @@
+/* Palette lifted from a USGS 7.5-minute quadrangle sheet:
+   buff paper, brown contours, woodland green, water blue, red overprint. */
+
+:root {
+  --paper:        #EDE4D3;
+  --paper-deep:   #E0D4BC;
+  --ink:          #2A2622;
+  --muted:        #7A6E5D;
+  --contour:      #A2703F;
+  --contour-deep: #6E4A26;
+  --woodland:     #C2D2B4;
+  --water:        #3F708F;
+  --overprint:    #BF3B2B;
+
+  --rule: 1px solid rgba(110, 74, 38, 0.28);
+  --rule-heavy: 2px solid var(--contour-deep);
+
+  --display: 'Bitter', Georgia, serif;
+  --data: 'IBM Plex Mono', ui-monospace, monospace;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--data);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Faint contour-paper tooth so the background isn't flat cream. */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.5;
+  background-image:
+    repeating-linear-gradient(0deg, rgba(162,112,63,.07) 0 1px, transparent 1px 46px),
+    repeating-linear-gradient(90deg, rgba(162,112,63,.07) 0 1px, transparent 1px 46px);
+}
+
+.sheet {
+  position: relative;
+  z-index: 1;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 28px 20px 56px;
+}
+
+/* ---------- Title block ---------- */
+
+.titleblock {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px 32px;
+  padding-bottom: 16px;
+  border-bottom: var(--rule-heavy);
+}
+
+.eyebrow {
+  margin: 0 0 6px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--contour);
+}
+
+#race-title {
+  margin: 0;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: clamp(2.4rem, 7vw, 4rem);
+  line-height: .95;
+  letter-spacing: -.02em;
+}
+
+.subtitle {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.titleblock__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  margin: 0;
+}
+
+.titleblock__meta > div {
+  padding: 0 16px;
+  border-left: var(--rule);
+}
+.titleblock__meta > div:first-child { padding-left: 0; border-left: 0; }
+
+.titleblock__meta dt {
+  font-size: 10px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.titleblock__meta dd {
+  margin: 2px 0 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+/* ---------- Alert ---------- */
+
+.alert {
+  margin-top: 18px;
+  padding: 12px 16px;
+  border: 2px solid var(--overprint);
+  background: rgba(191, 59, 43, .08);
+  color: var(--overprint);
+  font-weight: 600;
+  font-size: 14px;
+}
+
+/* ---------- Map plate + collar ---------- */
+
+.plate {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 0;
+  margin-top: 24px;
+  border: var(--rule-heavy);
+  background: var(--paper-deep);
+}
+
+.mapframe {
+  position: relative;
+  min-height: 520px;
+}
+
+#map {
+  position: absolute;
+  inset: 0;
+  background: var(--paper-deep);
+}
+
+/* The inner neatline — a printed map's double border. */
+.neatline {
+  position: absolute;
+  inset: 10px;
+  border: 1px solid rgba(42, 38, 34, .5);
+  pointer-events: none;
+  z-index: 500;
+}
+.neatline::after {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  border: 1px solid rgba(42, 38, 34, .22);
+}
+
+.basemap-toggle {
+  position: absolute;
+  right: 20px;
+  top: 20px;
+  z-index: 600;
+  display: flex;
+  border: 1px solid var(--ink);
+  background: var(--paper);
+}
+.basemap-toggle button {
+  appearance: none;
+  border: 0;
+  border-left: 1px solid rgba(42,38,34,.3);
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--data);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  padding: 7px 11px;
+  cursor: pointer;
+}
+.basemap-toggle button:first-child { border-left: 0; }
+.basemap-toggle button.is-active { background: var(--ink); color: var(--paper); }
+.basemap-toggle button:focus-visible { outline: 2px solid var(--overprint); outline-offset: 2px; }
+
+.mapframe__empty {
+  position: absolute;
+  z-index: 600;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  margin: 0;
+  padding: 10px 18px;
+  background: var(--paper);
+  border: 1px solid var(--ink);
+  font-size: 13px;
+}
+
+/* Collar: the margin of the sheet, where the data lives. */
+.collar {
+  border-left: var(--rule-heavy);
+  background: var(--paper);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.readout__label {
+  margin: 0 0 4px;
+  font-size: 10px;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.readout__value {
+  margin: 0;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 2rem;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.readout__value--sm { font-size: 1rem; font-family: var(--data); font-weight: 500; }
+.readout__sub {
+  margin: 5px 0 0;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.readout--hero {
+  padding-bottom: 18px;
+  border-bottom: var(--rule);
+}
+.readout--hero .readout__value { font-size: 2.6rem; }
+
+.is-stale .readout__value { color: var(--overprint); }
+
+.grid2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+/* Signature: the ping meter. One tick per expected fix window. */
+.pings__row {
+  display: flex;
+  gap: 3px;
+  margin: 6px 0 0;
+  height: 30px;
+  align-items: flex-end;
+}
+.ping {
+  flex: 1;
+  height: 100%;
+  border: 1px solid var(--contour);
+  background: transparent;
+}
+.ping.is-hit { background: var(--contour-deep); border-color: var(--contour-deep); }
+.ping.is-latest { background: var(--overprint); border-color: var(--overprint); }
+
+/* ---------- Schedule rail ---------- */
+
+.rail { margin-top: 32px; }
+
+.rail__head {
+  margin: 0 0 12px;
+  font-family: var(--display);
+  font-size: 1rem;
+  font-weight: 500;
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding-bottom: 8px;
+  border-bottom: var(--rule);
+}
+.rail__head span {
+  font-family: var(--data);
+  font-size: 10px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.rail__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 0;
+}
+
+.stage {
+  padding: 14px 14px 16px;
+  border-left: var(--rule);
+}
+.stage:first-child { border-left: 0; padding-left: 0; }
+
+.stage__n {
+  font-family: var(--display);
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--contour);
+}
+.stage__name {
+  margin: 6px 0 0;
+  font-size: 13px;
+  font-weight: 600;
+}
+.stage__leg, .stage__num {
+  margin: 3px 0 0;
+  font-size: 11px;
+  color: var(--muted);
+}
+.stage__time {
+  margin: 8px 0 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--contour-deep);
+}
+.stage__note {
+  margin: 6px 0 0;
+  font-size: 11px;
+  color: var(--water);
+}
+
+.stage.is-now { background: rgba(191, 59, 43, .07); }
+.stage.is-now .stage__n { color: var(--overprint); }
+.stage.is-done { opacity: .5; }
+
+/* ---------- Footer ---------- */
+
+.margin-note {
+  margin-top: 36px;
+  padding-top: 16px;
+  border-top: var(--rule);
+  max-width: 62ch;
+}
+.margin-note p { margin: 0 0 10px; font-size: 13px; color: var(--muted); }
+.margin-note__credit { font-size: 11px; }
+
+/* ---------- Leaflet overrides ---------- */
+
+.leaflet-container { font-family: var(--data); background: var(--paper-deep); }
+.leaflet-control-attribution {
+  background: rgba(237, 228, 211, .85) !important;
+  font-size: 9px !important;
+  color: var(--muted) !important;
+}
+.leaflet-control-attribution a { color: var(--water) !important; }
+
+.head-marker {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--overprint);
+  border: 2px solid var(--paper);
+  box-shadow: 0 0 0 1px var(--overprint);
+}
+.head-marker::after {
+  content: '';
+  position: absolute;
+  inset: -9px;
+  border-radius: 50%;
+  border: 2px solid var(--overprint);
+  animation: sweep 2.6s ease-out infinite;
+}
+@keyframes sweep {
+  0%   { transform: scale(.5); opacity: .9; }
+  100% { transform: scale(1.5); opacity: 0; }
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 900px) {
+  .plate { grid-template-columns: 1fr; }
+  .mapframe { min-height: 62vh; }
+  .collar { border-left: 0; border-top: var(--rule-heavy); }
+  .rail__list { grid-template-columns: repeat(2, 1fr); }
+  .stage { border-left: var(--rule); border-top: var(--rule); }
+  .stage:nth-child(odd) { border-left: 0; padding-left: 0; }
+  .stage:nth-child(-n+2) { border-top: 0; }
+}
+
+@media (max-width: 520px) {
+  .sheet { padding: 20px 14px 40px; }
+  .titleblock__meta > div { padding: 0 12px; }
+  .rail__list { grid-template-columns: 1fr; }
+  .stage { border-left: 0; padding-left: 0; }
+  .stage:first-child { border-top: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .head-marker::after { animation: none; opacity: 0; }
+  * { transition: none !important; }
+}
+
+:focus-visible { outline: 2px solid var(--overprint); outline-offset: 2px; }

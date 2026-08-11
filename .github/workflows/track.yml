@@ -1,0 +1,43 @@
+name: Poll SPOT feed
+
+on:
+  schedule:
+    # GitHub's minimum granularity is 5 minutes, and scheduled runs are
+    # best-effort — they get delayed under load. See README for the fallback.
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: spot-poll
+  cancel-in-progress: false
+
+jobs:
+  poll:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Fetch points from SPOT
+        env:
+          SPOT_FEED_ID: ${{ secrets.SPOT_FEED_ID }}
+          SPOT_FEED_PASSWORD: ${{ secrets.SPOT_FEED_PASSWORD }}
+        run: node scripts/poll.mjs
+
+      - name: Commit new fixes
+        run: |
+          if git diff --quiet -- docs/data/track.json; then
+            echo "No new fixes to commit."
+            exit 0
+          fi
+          git config user.name "spot-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/data/track.json
+          git commit -m "Fixes through $(date -u +'%Y-%m-%dT%H:%MZ')"
+          git push
