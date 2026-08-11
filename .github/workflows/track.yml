@@ -2,9 +2,12 @@ name: Poll SPOT feed
 
 on:
   schedule:
-    # GitHub's minimum granularity is 5 minutes, and scheduled runs are
-    # best-effort — they get delayed under load. See README for the fallback.
-    - cron: '*/5 * * * *'
+    # Every 10 minutes, matching the Gen4's tracking cadence. Polling faster
+    # mostly re-reads the same fix, and every commit rebuilds Pages — which
+    # GitHub soft-limits to ~10 builds/hour. At 10 minutes the heartbeat costs
+    # ~6 builds/hour and leaves headroom. Scheduled runs are best-effort and
+    # get delayed under load; see the README for the manual fallback.
+    - cron: '*/10 * * * *'
   workflow_dispatch:
 
 permissions:
@@ -30,14 +33,27 @@ jobs:
           SPOT_FEED_PASSWORD: ${{ secrets.SPOT_FEED_PASSWORD }}
         run: node scripts/poll.mjs
 
+      # Runs even if the poll step failed, so a failed poll still records its
+      # heartbeat. Without this the page cannot distinguish a broken pipeline
+      # from a stationary rider.
       - name: Commit new fixes
+        if: always()
         run: |
-          if git diff --quiet -- docs/data/track.json; then
-            echo "No new fixes to commit."
+          if git diff --quiet -- docs/data/; then
+            echo "Nothing to commit."
             exit 0
           fi
           git config user.name "spot-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs/data/track.json
+          git add docs/data/track.json docs/data/status.json
           git commit -m "Fixes through $(date -u +'%Y-%m-%dT%H:%MZ')"
-          git push
+          # The archive is append-only and this is the only writer, but a
+          # concurrent manual run could still land first. Rebase and retry
+          # rather than failing and losing the fix.
+          for i in 1 2 3; do
+            git push && exit 0
+            echo "Push rejected, rebasing and retrying ($i/3)"
+            git pull --rebase --autostash origin main || true
+          done
+          echo "Could not push after 3 attempts." >&2
+          exit 1

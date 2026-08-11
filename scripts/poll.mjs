@@ -17,6 +17,10 @@ import { dirname } from 'node:path';
 const FEED_ID = process.env.SPOT_FEED_ID;
 const FEED_PASSWORD = process.env.SPOT_FEED_PASSWORD || '';
 const OUT = process.env.OUT_PATH || 'docs/data/track.json';
+// Health lives beside the archive rather than inside it. track.json is the
+// permanent record and its shape should not churn; this file is disposable
+// and rewritten every run, which is what makes it a heartbeat.
+const STATUS_OUT = process.env.STATUS_PATH || OUT.replace(/track\.json$/, 'status.json');
 const MAX_PAGES = Number(process.env.MAX_PAGES || 8);
 const PAGE_SIZE = 50;
 const MAX_RETRIES = Number(process.env.MAX_RETRIES || 3);
@@ -239,12 +243,14 @@ async function main() {
     /* first run */
   }
 
+  const summary = { points: points.length, lastFixT: points.at(-1)?.t, fetched };
+
   if (current === serialized) {
     console.log(`No change. ${points.length} points on file (fetched ${fetched} messages).`);
     // Nothing new and the poll also failed: nothing to commit, so surface it
     // as a red run rather than a green one that quietly did nothing.
     if (pollError) throw new Error(`Poll failed and no new data: ${pollError}`);
-    return;
+    return summary;
   }
 
   await mkdir(dirname(OUT), { recursive: true });
@@ -258,9 +264,47 @@ async function main() {
 
   console.log(`Wrote ${OUT} — ${points.length} points (${added >= 0 ? '+' : ''}${added} new).`);
   if (pollError) console.warn(`Partial poll: kept what arrived before "${pollError}".`);
+  return summary;
 }
 
-main().catch((err) => {
-  console.error(err.message);
-  process.exit(1);
-});
+/**
+ * The heartbeat. Written on every run, success or failure, so the page can
+ * tell "he has stopped moving" from "the pipeline has stopped running" —
+ * which look identical if all you have is the age of the last fix.
+ */
+async function writeStatus({ ok, error, points, lastFixT, fetched }) {
+  const status = {
+    polledAt: new Date().toISOString(),
+    ok,
+    error: error ? String(error).slice(0, 300) : null,
+    points: points ?? null,
+    lastFixAt: Number.isFinite(lastFixT) ? lastFixT : null,
+    fetched: fetched ?? 0,
+    intervalMinutes: Number(process.env.POLL_INTERVAL_MINUTES || 10),
+  };
+  try {
+    await mkdir(dirname(STATUS_OUT), { recursive: true });
+    const tmp = `${STATUS_OUT}.${process.pid}.tmp`;
+    await writeFile(tmp, JSON.stringify(status, null, 2) + '\n');
+    await rename(tmp, STATUS_OUT);
+  } catch (err) {
+    // A missing heartbeat is itself a signal; never let it fail the run.
+    console.warn(`Could not write ${STATUS_OUT}: ${err.message}`);
+  }
+}
+
+main()
+  .then((summary) => writeStatus({ ok: true, error: null, ...summary }))
+  .catch(async (err) => {
+    console.error(err.message);
+    // Record the failure before exiting, so the page can say what went wrong
+    // rather than just going quiet.
+    const existing = await readArchive();
+    await writeStatus({
+      ok: false,
+      error: err.message,
+      points: existing.points.length,
+      lastFixT: existing.points.at(-1)?.t,
+    });
+    process.exit(1);
+  });
