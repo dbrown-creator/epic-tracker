@@ -1,5 +1,8 @@
 # Mega Epic live track
 
+Live at **<https://davidsdot.com>** — landing page at , the tracker at
+, the schedule at .
+
 A GitHub Actions cron polls a SPOT public feed, commits each new fix to
 `docs/data/track.json`, and GitHub Pages serves a map that reads it.
 
