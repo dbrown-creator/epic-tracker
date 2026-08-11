@@ -1,25 +1,53 @@
 name: Poll SPOT feed
 
+# GitHub's scheduler is best-effort and was measured at roughly one run per
+# hour against a 10-minute cron — useless for dot-watching. It does not,
+# however, limit how long a job runs, and a run queued behind a concurrency
+# group starts the moment the current one ends.
+#
+# So during the race a single job holds itself open for most of six hours,
+# polling every 10 minutes from inside. The cron stops being the thing that
+# sets the cadence and becomes only the thing that hands off between blocks —
+# and because a pending run is almost always waiting, handoff is near instant.
+#
+# Outside the race window it degrades to exactly what it was: one poll, exit.
+
 on:
   schedule:
-    # Every 10 minutes, matching the Gen4's tracking cadence. Polling faster
-    # mostly re-reads the same fix, and every commit rebuilds Pages — which
-    # GitHub soft-limits to ~10 builds/hour. At 10 minutes the heartbeat costs
-    # ~6 builds/hour and leaves headroom. Scheduled runs are best-effort and
-    # get delayed under load; see the README for the manual fallback.
     - cron: '*/10 * * * *'
   workflow_dispatch:
+    inputs:
+      loop:
+        description: 'Force the long-running loop even outside the race window'
+        type: boolean
+        default: false
+      minutes:
+        description: 'Minutes to hold the loop open (blank = 340, the race default)'
+        type: string
+        default: ''
 
 permissions:
   contents: write
 
+# Serialises everything and, crucially, keeps one run pending so it can take
+# over the instant the current block finishes.
 concurrency:
   group: spot-poll
   cancel-in-progress: false
 
+env:
+  # Race window, with margin either side. Outside this the job does not hold a
+  # runner open — it polls once and exits.
+  WINDOW_OPEN: '2026-08-12T13:00:00Z'
+  WINDOW_CLOSE: '2026-08-15T06:00:00Z'
+
 jobs:
   poll:
     runs-on: ubuntu-latest
+    # The hard ceiling on a job is 6 hours. Stop short so the loop exits under
+    # its own control rather than being killed mid-push.
+    timeout-minutes: 350
+
     steps:
       - uses: actions/checkout@v4
 
@@ -27,17 +55,48 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Decide single poll or loop
+        id: mode
+        run: |
+          now=$(date -u +%s)
+          open=$(date -u -d "${WINDOW_OPEN}" +%s)
+          close=$(date -u -d "${WINDOW_CLOSE}" +%s)
+          if [ "${{ inputs.loop }}" = "true" ] || { [ "$now" -ge "$open" ] && [ "$now" -lt "$close" ]; }; then
+            echo "loop=true" >> "$GITHUB_OUTPUT"
+            echo "In the race window — holding this job open and polling from inside."
+          else
+            echo "loop=false" >> "$GITHUB_OUTPUT"
+            echo "Outside the race window — single poll."
+          fi
+
+      # ---- race mode ----
+      - name: Poll continuously
+        if: steps.mode.outputs.loop == 'true'
+        env:
+          SPOT_FEED_ID: ${{ secrets.SPOT_FEED_ID }}
+          SPOT_FEED_PASSWORD: ${{ secrets.SPOT_FEED_PASSWORD }}
+          INTERVAL: '600'
+        run: |
+          # 340 minutes by default: comfortably inside the 350-minute job
+          # timeout, so the loop exits under its own control and lets the
+          # queued run take over rather than being killed mid-push.
+          mins="${{ inputs.minutes }}"
+          export MAX_SECONDS=$(( ${mins:-340} * 60 ))
+          bash scripts/fallback-poll.sh
+
+      # ---- everything else ----
       - name: Fetch points from SPOT
+        if: steps.mode.outputs.loop != 'true'
         env:
           SPOT_FEED_ID: ${{ secrets.SPOT_FEED_ID }}
           SPOT_FEED_PASSWORD: ${{ secrets.SPOT_FEED_PASSWORD }}
         run: node scripts/poll.mjs
 
-      # Runs even if the poll step failed, so a failed poll still records its
+      # Runs even if the poll failed, so a failed poll still records its
       # heartbeat. Without this the page cannot distinguish a broken pipeline
       # from a stationary rider.
       - name: Commit new fixes
-        if: always()
+        if: always() && steps.mode.outputs.loop != 'true'
         run: |
           if git diff --quiet -- docs/data/; then
             echo "Nothing to commit."
@@ -47,9 +106,6 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add docs/data/track.json docs/data/status.json
           git commit -m "Fixes through $(date -u +'%Y-%m-%dT%H:%MZ')"
-          # The archive is append-only and this is the only writer, but a
-          # concurrent manual run could still land first. Rebase and retry
-          # rather than failing and losing the fix.
           for i in 1 2 3; do
             git push && exit 0
             echo "Push rejected, rebasing and retrying ($i/3)"
