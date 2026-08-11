@@ -1,0 +1,5 @@
+# The archive is written by a Linux Action runner and by whatever machine runs
+# the fallback poll loop. Normalising to LF keeps those two from producing
+# whole-file diffs against each other on race day.
+* text=auto eol=lf
+*.json text eol=lf

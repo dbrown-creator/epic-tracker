@@ -111,7 +111,10 @@ async function main() {
     if (page > 0) await sleep(3000); // be polite between paged calls
 
     const { messages, feed, exhausted } = await fetchPage(start);
-    if (feed) feedMeta = { id: feed.id, name: feed.name, description: feed.description };
+    // Deliberately not feed.id — the API echoes the feed ID back, and this
+    // object gets committed to a public repo. Anyone holding that ID can read
+    // a week of position history.
+    if (feed) feedMeta = { name: feed.name, description: feed.description, status: feed.status };
     if (exhausted) break;
 
     for (const m of messages) {
@@ -133,6 +136,12 @@ async function main() {
 
   const next = { feed: feedMeta, count: points.length, points };
   const serialized = JSON.stringify(next, null, 2) + '\n';
+
+  // This file is committed to a public repo. Refuse to write rather than ever
+  // publish the credential, whatever future edits do upstream of here.
+  if (serialized.includes(FEED_ID)) {
+    throw new Error('Refusing to write: output contains the feed ID.');
+  }
 
   let current = null;
   try {
