@@ -265,6 +265,11 @@ body::before {
 
 .is-stale .readout__value { color: var(--overprint); }
 
+/* Behind plan is information, not an alarm — it uses the contour brown rather
+   than the red overprint, which is reserved for staleness and HELP. */
+#plan.is-behind { color: var(--contour-deep); }
+#plan.is-ahead  { color: var(--water); }
+
 /* "Where" carries the answer people actually came for — a place name beats
    a coordinate pair — so it gets display type despite being prose. */
 .readout--where .readout__value {

@@ -171,6 +171,86 @@
     return best;
   }
 
+  /* ---------- plan versus actual ---------- */
+
+  /**
+   * The schedule as a curve of (hours elapsed -> course mile), built by pinning
+   * each stage's planned start and finish to where that stage actually sits on
+   * the master line. Rests are flat sections: the plan holds position between a
+   * stage finish and the next start.
+   *
+   * The rail shows the plan and the map shows the truth. This is the number
+   * that says whether they agree.
+   */
+  let planCurve = null;
+
+  function buildPlanCurve() {
+    if (!course.stageSpans.length) return null;
+    const pts = [];
+    for (const s of CFG.stages) {
+      const span = course.stageSpans.find((x) => x.stage === s.n);
+      if (!span) continue;
+      pts.push({ h: s.startOffsetHours, mile: span.startMile });
+      pts.push({ h: s.startOffsetHours + s.durationHours, mile: span.endMile });
+    }
+    pts.sort((a, b) => a.h - b.h);
+    return pts.length >= 2 ? pts : null;
+  }
+
+  /** When the plan expected him to reach a given mile, in hours elapsed. */
+  function plannedHoursAtMile(mile) {
+    if (!planCurve) return null;
+    if (mile <= planCurve[0].mile) return planCurve[0].h;
+    for (let i = 1; i < planCurve.length; i++) {
+      const a = planCurve[i - 1];
+      const b = planCurve[i];
+      if (mile <= b.mile) {
+        // A rest is flat in distance; the plan reaches that mile at its start.
+        if (b.mile === a.mile) return a.h;
+        return a.h + ((mile - a.mile) / (b.mile - a.mile)) * (b.h - a.h);
+      }
+    }
+    return planCurve[planCurve.length - 1].h;
+  }
+
+  /** Where the plan says he should be right now. */
+  function plannedMileAtHours(h) {
+    if (!planCurve) return null;
+    if (h <= planCurve[0].h) return planCurve[0].mile;
+    for (let i = 1; i < planCurve.length; i++) {
+      const a = planCurve[i - 1];
+      const b = planCurve[i];
+      if (h <= b.h) {
+        if (b.h === a.h) return b.mile;
+        return a.mile + ((h - a.h) / (b.h - a.h)) * (b.mile - a.mile);
+      }
+    }
+    return planCurve[planCurve.length - 1].mile;
+  }
+
+  /* ---------- stopped or moving ---------- */
+
+  /**
+   * Fixes clustering in one place means stopped. Reported separately from the
+   * heartbeat: a stationary rider and a dead pipeline both freeze the dot, and
+   * conflating them is the failure mode that matters.
+   */
+  function movementState(fixes, now) {
+    if (fixes.length < 2) return null;
+    const last = fixes[fixes.length - 1];
+    const CLUSTER_MILES = 0.12; // GPS scatter plus a campsite
+
+    let since = last.t;
+    for (let i = fixes.length - 2; i >= 0; i--) {
+      if (haversineMiles(fixes[i], last) > CLUSTER_MILES) break;
+      since = fixes[i].t;
+    }
+    const stoppedMs = last.t * 1000 - since * 1000;
+    // Two consecutive fixes in the same place is noise; three is a stop.
+    if (stoppedMs < 2 * PING_MS) return { moving: true };
+    return { moving: false, sinceMs: stoppedMs, sinceT: since, ageMs: now - since * 1000 };
+  }
+
   /** Does the marker set cover any ground beyond here at all? */
   function hasCrossingsBeyond(mile) {
     return course.markers.some(
@@ -286,6 +366,7 @@
         course.stageSpans = idx.stageSpans || [];
         course.totalMiles = idx.totalMiles || CFG.totalMiles;
         course.loaded = Array.isArray(idx.lon) && idx.lon.length > 1;
+        planCurve = buildPlanCurve();
       }
     } catch (_) {
       /* without the index there is no snapping; everything else still works */
@@ -460,6 +541,8 @@
       progressSub.textContent = 'off course';
     }
 
+    renderPlan(snap);
+
     // Nearest point a crew vehicle could reach, with a rough ETA from the
     // pace over the last few hours rather than an average over the whole ride.
     const crew = $('crew');
@@ -486,6 +569,37 @@
     }
 
     setStatusBar(ageText, where.textContent, progress.textContent, stale);
+  }
+
+  function renderPlan(snap) {
+    const el = $('plan');
+    const sub = $('plan-sub');
+    if (!el) return;
+
+    const elapsedH = (Date.now() - START_MS) / 3600000;
+    if (!planCurve || !snap || !snap.onCourse || elapsedH < 0) {
+      el.textContent = '—';
+      sub.textContent = planCurve ? 'Not started' : 'Schedule unavailable';
+      el.classList.remove('is-behind', 'is-ahead');
+      return;
+    }
+
+    const shouldHaveTakenH = plannedHoursAtMile(snap.mile);
+    const deltaH = elapsedH - shouldHaveTakenH; // positive = behind
+    const planMile = plannedMileAtHours(elapsedH);
+
+    const behind = deltaH > 0;
+    const mag = hhmm(Math.abs(deltaH) * 3600000);
+    // Under twenty minutes either way is noise on a 58-hour effort.
+    if (Math.abs(deltaH) < 1 / 3) {
+      el.textContent = 'On plan';
+      el.classList.remove('is-behind', 'is-ahead');
+    } else {
+      el.textContent = `${mag} ${behind ? 'behind' : 'ahead'}`;
+      el.classList.toggle('is-behind', behind);
+      el.classList.toggle('is-ahead', !behind);
+    }
+    sub.textContent = `plan says mile ${planMile.toFixed(1)}`;
   }
 
   /** Miles per hour over the last two hours of fixes, or null if too few. */
@@ -552,8 +666,18 @@
     const age = now - lastMs;
 
     $('fix-age').textContent = ago(age);
-    $('fix-time').textContent = clockFmt.format(new Date(lastMs));
     document.querySelector('.readout--hero').classList.toggle('is-stale', age > STALE_MS);
+
+    // Fix time, and whether he has been sitting still. A stop is normal and
+    // often planned; saying so stops a cluster of identical fixes reading as a
+    // fault.
+    const move = movementState(fixes, now);
+    const at = clockFmt.format(new Date(lastMs));
+    if (move && !move.moving) {
+      $('fix-time').textContent = `${at} · stopped ${hhmm(move.ageMs)}`;
+    } else {
+      $('fix-time').textContent = at;
+    }
 
     $('elapsed').textContent = now < START_MS ? '—' : hhmm(now - START_MS);
     $('elapsed-sub').textContent = `of ${CFG.targetHours} h target`;

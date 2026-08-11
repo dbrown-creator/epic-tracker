@@ -147,7 +147,12 @@ async function main() {
     error: 'HTTP 503 Service Unavailable',
   });
 
-  // 7. Deep night on stage 4, for judging legibility at 4am.
+  // 7. Parked mid-sleep. Fixes keep arriving from the same spot, which is the
+  //    case most easily mistaken for a fault.
+  const stopped = buildFixes(sampleAt, { hours: 14 });
+  await write('stopped', stopped.points, stopped.now);
+
+  // 8. Deep night on stage 4, for judging legibility at 4am.
   const night = buildFixes(sampleAt, { hours: 31 });
   await write('night', night.points, night.now);
 }

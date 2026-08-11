@@ -102,6 +102,9 @@ async function main() {
         return {
           where: t('where'),
           whereSub: t('where-sub'),
+          plan: t('plan'),
+          planSub: t('plan-sub'),
+          fixTime: t('fix-time'),
           progress: t('progress'),
           progressSub: t('progress-sub'),
           fixAge: t('fix-age'),
@@ -119,7 +122,8 @@ async function main() {
       console.log(`\n${fx} / ${v.name}  -> ${shot}`);
       console.log(`  where     ${readouts.where} | ${readouts.whereSub}`);
       console.log(`  progress  ${readouts.progress} ${readouts.progressSub}`);
-      console.log(`  last fix  ${readouts.fixAge}   elapsed ${readouts.elapsed}`);
+      console.log(`  plan      ${readouts.plan} | ${readouts.planSub}`);
+      console.log(`  last fix  ${readouts.fixAge}   elapsed ${readouts.elapsed}   ${readouts.fixTime}`);
       console.log(`  crew      ${readouts.crew} | ${readouts.crewSub}`);
       console.log(`  pings     [${readouts.pings}]`);
       if (readouts.alert) console.log(`  ALERT     ${readouts.alert}`);
