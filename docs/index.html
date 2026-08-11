@@ -19,9 +19,14 @@
 
 <div class="sheet">
 
+  <nav class="sitenav">
+    <a href="./" class="is-current">Live track</a>
+    <a href="schedule.html">Schedule</a>
+  </nav>
+
   <header class="titleblock">
     <div class="titleblock__main">
-      <p class="eyebrow">Solo · Self-supported · No aid</p>
+      <p class="eyebrow">Individual time trial · Crewed by Lindy</p>
       <h1 id="race-title">Mega Epic</h1>
       <p class="subtitle" id="race-subtitle">Individual time trial · Breckenridge, Colorado</p>
     </div>
@@ -81,6 +86,14 @@
         <p class="readout__sub">One mark per expected 10-minute window</p>
       </div>
 
+      <div class="layers">
+        <p class="readout__label">
+          Course
+          <label class="layers__all"><input type="checkbox" id="layers-all" checked> all</label>
+        </p>
+        <div id="layers"></div>
+      </div>
+
       <div class="readout readout--where">
         <p class="readout__label">Where</p>
         <p class="readout__value readout__value--sm" id="where">—</p>
@@ -129,12 +142,12 @@
   </main>
 
   <section class="rail" aria-label="Planned schedule">
-    <h2 class="rail__head">Planned schedule <span>times are the plan, not a report</span></h2>
+    <h2 class="rail__head">Stages <span>completed times are real · upcoming are projected</span></h2>
     <ol class="rail__list" id="stage-rail"></ol>
   </section>
 
   <footer class="margin-note">
-    <p>Six stage courses ridden end to end as one continuous effort, starting half an hour behind the grand depart. No aid stations, no drop bags — resupply happens at the house the course runs past.</p>
+    <p>Six stage courses ridden end to end as one continuous effort, starting half an hour behind the grand depart. Not the official Mega Epic — an individual time trial of the same 217 miles, crewed by Lindy, with resupply at the house the course runs past.</p>
     <p class="margin-note__credit">Positions from a SPOT Gen4 satellite messenger, polled every few minutes. Gaps are normal: the device needs sky, and the trees on Aqueduct are thick.</p>
   </footer>
 

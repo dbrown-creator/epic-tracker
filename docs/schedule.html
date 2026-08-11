@@ -1,0 +1,409 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Breck Epic 217 — Independent Time Trial</title><style>
+:root{--ink:#15171a;--mut:#6b7280;--line:#e4e7ea;--bg:#fcfcfb;
+--ride:#2f6f4f;--ride-bg:#e9f2ed;--stop:#b0651a;--stop-bg:#fbecd8;
+--sleep:#3b5aa6;--sleep-bg:#e6ecfa;--move:#9aa0a6;--move-bg:#f0f1f3;
+--red:#b3261e;--good:#1e6b47;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Helvetica,Arial,sans-serif}
+.wrap{max-width:930px;margin:0 auto;padding:44px 24px 100px}
+header{border-bottom:2px solid var(--ink);padding-bottom:16px}
+h1{font-size:31px;margin:0 0 6px;letter-spacing:-.022em}
+.sub{color:var(--mut);font-size:13.5px}
+.meta{display:flex;flex-wrap:wrap;margin:22px 0;border:1px solid var(--line);
+border-radius:10px;background:#fff;overflow:hidden}
+.meta>div{flex:1 1 140px;padding:13px 16px;border-right:1px solid var(--line)}
+.meta>div:last-child{border-right:0}
+.k{color:var(--mut);text-transform:uppercase;letter-spacing:.08em;font-size:10px;margin-bottom:3px}
+.v{font-weight:650;font-size:18px;font-variant-numeric:tabular-nums}
+.v.good{color:var(--good)}
+.v.xl{font-size:23px;letter-spacing:-.02em}
+.meta>div.big{flex:1 1 190px;background:#fff}
+.vs{font-size:11.5px;color:var(--mut);margin-top:3px}
+.v small{font-weight:500;font-size:11.5px;color:var(--mut);display:block;margin-top:2px}
+.box{border:1px solid var(--line);border-radius:10px;background:#fff;padding:18px 20px;margin-bottom:20px}
+.box h2{margin:0 0 8px;font-size:15px}
+.box p{margin:0;font-size:13.5px;color:#43484d}.box p+p{margin-top:8px}
+.box.win{background:#eef6f1;border-color:#cfe3d8;border-left:4px solid var(--good)}
+.box.win h2{color:#17543a}.box.win p{color:#254a3a}
+.routine{display:flex;gap:9px;flex-wrap:wrap;margin-top:10px}
+.routine span{font-size:11.5px;background:var(--stop-bg);color:#7a4512;border:1px solid #e8cba4;
+border-radius:20px;padding:3px 11px;font-weight:600}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:11.5px;color:var(--mut);margin:26px 0 8px}
+.legend i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.chart{position:relative;margin-left:92px;border-top:1px solid var(--line);height:3360px}
+.night{position:absolute;left:-92px;right:0;background:#e9ebf0}
+.grid{position:absolute;left:0;right:0;height:1px;background:rgba(0,0,0,.05)}
+.grid.major{background:rgba(0,0,0,.13)}
+.tick{position:absolute;left:-92px;width:80px;text-align:right;line-height:1.12}
+.tick .dy{display:block;font-size:9px;font-weight:800;letter-spacing:.12em;color:#15171a}
+.tick .el{display:block;font-size:14px;font-weight:650;color:#40454b;font-variant-numeric:tabular-nums}
+.tick .ck{display:block;font-size:9px;color:#b9bec3;font-variant-numeric:tabular-nums}
+.tick.tickmaj .el{color:var(--ink);font-size:15px;font-weight:750}
+.tick.tickstart .el{color:var(--good)}
+.tick.tickstart .ck{color:var(--good);font-weight:700;letter-spacing:.08em}
+.grid.midnight{background:rgba(0,0,0,.3)}
+.blk{position:absolute;left:10px;right:0;border-radius:7px;padding:7px 13px;overflow:hidden;
+border:1px solid var(--line);border-left-width:4px}
+.bt{font-size:14.5px;font-weight:650;letter-spacing:-.012em;line-height:1.25}
+.bd{font-size:12px;color:#4c5257;margin-top:2px;line-height:1.32}
+.ba{font-size:11px;color:var(--mut);margin-top:4px;font-variant-numeric:tabular-nums}
+.bc{float:right;text-align:right;margin-left:14px;line-height:1.2}
+.bc b{display:block;font-size:19px;font-weight:700;color:#15171a;font-variant-numeric:tabular-nums;
+letter-spacing:-.02em;line-height:1.05}
+.bc .rng{display:block;font-size:11px;color:#7c8288;font-weight:600;font-variant-numeric:tabular-nums;
+margin-top:2px;white-space:nowrap}
+.blk.small{padding:5px 13px}.blk.small .bt{font-size:13px}.blk.small .bd{font-size:11px}
+.blk.small .bc b{font-size:16px}.blk.small .bc .rng{font-size:10.5px}
+.blk.tiny{padding:2px 13px;display:flex;align-items:center}
+.blk.tiny .bt{font-size:11px;font-weight:600;color:#5d6369}
+.blk.tiny .bc b{font-size:12px;display:inline}
+.blk.tiny .bc .rng{display:inline;font-size:10px;margin-left:7px}
+.ride{border-left-color:var(--ride);background:var(--ride-bg)}
+.stop{border-left-color:var(--stop);background:var(--stop-bg)}.stop .bt{color:#7a4512}
+.sleep{border-left-color:var(--sleep);background:var(--sleep-bg)}.sleep .bt{color:#22366b}
+.move{border-left-color:var(--move);background:var(--move-bg)}
+.decision{border:2px dashed var(--sleep);border-left-width:4px}
+.grp{position:absolute;left:0;width:4px;border-radius:3px;background:var(--ride);opacity:.55}
+.bank{position:absolute;left:-92px;right:0;background:repeating-linear-gradient(45deg,
+rgba(30,107,71,.07) 0 8px,rgba(30,107,71,.14) 8px 16px);pointer-events:none}
+.mark{position:absolute;left:-92px;right:0;height:0;border-top:2px dashed var(--good);z-index:5}
+.mark span{position:absolute;right:0;top:-9px;background:var(--good);color:#fff;font-size:10px;
+font-weight:700;letter-spacing:.05em;padding:2px 8px;border-radius:4px;text-transform:uppercase}
+.mark.end{border-top-color:#15171a}.mark.end span{background:#15171a}
+.panel{margin-top:38px;border:1px solid var(--line);border-radius:10px;background:#fff;padding:22px 24px}
+.panel h2{margin:0 0 4px;font-size:17px}
+.panel .lead{color:var(--mut);font-size:13px;margin:0 0 14px}
+.t{width:100%;border-collapse:collapse;font-size:13.5px}
+.t th{text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.08em;
+color:var(--mut);border-bottom:1px solid var(--line);padding:0 10px 7px 0;font-weight:700}
+.t td{padding:9px 10px 9px 0;border-bottom:1px solid #f1f3f4;vertical-align:top}
+.t td.n{font-variant-numeric:tabular-nums;white-space:nowrap}
+.t tr.yr td{background:#f2f4f6;font-weight:700;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:#5b6167;padding:6px 10px;border-bottom:1px solid #e4e7ea}
+.t.log td{font-size:12.5px;padding:7px 10px 7px 0}
+.t.log td:first-child{white-space:nowrap}
+.sm{font-size:11.5px;color:var(--mut)}
+.notes{margin-top:24px;font-size:12.5px;color:var(--mut);border-top:1px solid var(--line);padding-top:16px}
+.notes b{color:var(--ink)}
+@media(max-width:640px){.chart{margin-left:66px}.tick{left:-66px;width:56px}
+.tick .el{font-size:12px}.night,.bank,.mark{left:-66px}}
+</style><style>.sitenav{display:flex;gap:2px;max-width:1100px;margin:0 auto;padding:14px 20px 0;font:600 12px/1 ui-monospace,monospace;letter-spacing:.12em;text-transform:uppercase}.sitenav a{padding:9px 16px;color:#6b7280;text-decoration:none;border:1px solid #e4e7ea;border-bottom:0;background:#f4f4f2}.sitenav a.is-current{color:#15171a;background:#fff;border-color:#15171a}</style></head><body><nav class="sitenav"><a href="./">Live track</a><a href="schedule.html" class="is-current">Schedule</a></nav><div class="wrap">
+
+<header>
+<h1>Breck Epic 217 — independent time trial</h1>
+<div class="sub"><b>Wednesday 12 – Friday 14 August 2026</b> · 217 miles · 34,805 ft · all six Breck Epic stages, one continuous push<br>
+Solo ITT on home trails — not the official Mega Epic. Rolling out 30 minutes behind the grand depart, fully self-supported apart from own crew.<br>
+Every block is drawn at its true length — 1 hour = 48px. Grey bands are full darkness. Left rail is clock time; elapsed hours in grey underneath.</div>
+</header>
+
+<div class="meta">
+<div class="big"><div class="k">Start</div><div class="v xl">Wed 9:00 AM</div><div class="vs">Ice Rink · 30 min after the grand depart</div></div>
+<div class="big"><div class="k">Projected finish</div><div class="v xl good">Fri 5:48 PM</div><div class="vs">Carter Park · stage 6</div></div>
+<div><div class="k">Elapsed</div><div class="v">56:49</div><div class="vs">1:11 under the 58h target</div></div>
+<div><div class="k">Riding</div><div class="v">43:36</div><div class="vs">11:58 off the bike</div></div>
+</div>
+
+<div class="legend">
+<span><i style="background:var(--ride-bg);border:1px solid var(--ride)"></i>Stage</span>
+<span><i style="background:var(--stop-bg);border:1px solid var(--stop)"></i>Pit stop</span>
+<span><i style="background:var(--sleep-bg);border:1px solid var(--sleep)"></i>Sleep stop</span>
+<span><i style="background:var(--move-bg);border:1px solid var(--move)"></i>Transfer ride</span>
+<span><i style="background:#e9ebf0;border:1px solid #ccd"></i>Full dark</span>
+<span><i style="background:rgba(30,107,71,.14);border:1px solid #9c9"></i>Margin</span>
+</div>
+
+<div class="chart">
+<div class="night" style="top:556.0px;height:440.0px"></div>
+<div class="night" style="top:1708.0px;height:440.0px"></div>
+<div class="night" style="top:2860.0px;height:440.0px"></div>
+<div class="grid" style="top:0.0px"></div>
+<div class="grid" style="top:48.0px"></div>
+<div class="tick" style="top:37.0px"><span class="el">10a</span><span class="ck">+1:00</span></div>
+<div class="grid" style="top:96.0px"></div>
+<div class="grid major" style="top:144.0px"></div>
+<div class="tick tickmaj" style="top:133.0px"><span class="el">12p</span><span class="ck">+3:00</span></div>
+<div class="grid" style="top:192.0px"></div>
+<div class="grid" style="top:240.0px"></div>
+<div class="tick" style="top:229.0px"><span class="el">2p</span><span class="ck">+5:00</span></div>
+<div class="grid" style="top:288.0px"></div>
+<div class="grid" style="top:336.0px"></div>
+<div class="tick" style="top:325.0px"><span class="el">4p</span><span class="ck">+7:00</span></div>
+<div class="grid" style="top:384.0px"></div>
+<div class="grid major" style="top:432.0px"></div>
+<div class="tick tickmaj" style="top:421.0px"><span class="el">6p</span><span class="ck">+9:00</span></div>
+<div class="grid" style="top:480.0px"></div>
+<div class="grid" style="top:528.0px"></div>
+<div class="tick" style="top:517.0px"><span class="el">8p</span><span class="ck">+11:00</span></div>
+<div class="grid" style="top:576.0px"></div>
+<div class="grid" style="top:624.0px"></div>
+<div class="tick" style="top:613.0px"><span class="el">10p</span><span class="ck">+13:00</span></div>
+<div class="grid" style="top:672.0px"></div>
+<div class="grid major midnight" style="top:720.0px"></div>
+<div class="tick tickmaj" style="top:709.0px"><span class="dy">THU</span><span class="el">12a</span><span class="ck">+15:00</span></div>
+<div class="grid" style="top:768.0px"></div>
+<div class="grid" style="top:816.0px"></div>
+<div class="tick" style="top:805.0px"><span class="el">2a</span><span class="ck">+17:00</span></div>
+<div class="grid" style="top:864.0px"></div>
+<div class="grid" style="top:912.0px"></div>
+<div class="tick" style="top:901.0px"><span class="el">4a</span><span class="ck">+19:00</span></div>
+<div class="grid" style="top:960.0px"></div>
+<div class="grid major" style="top:1008.0px"></div>
+<div class="tick tickmaj" style="top:997.0px"><span class="el">6a</span><span class="ck">+21:00</span></div>
+<div class="grid" style="top:1056.0px"></div>
+<div class="grid" style="top:1104.0px"></div>
+<div class="tick" style="top:1093.0px"><span class="el">8a</span><span class="ck">+23:00</span></div>
+<div class="grid" style="top:1152.0px"></div>
+<div class="grid" style="top:1200.0px"></div>
+<div class="tick" style="top:1189.0px"><span class="el">10a</span><span class="ck">+25:00</span></div>
+<div class="grid" style="top:1248.0px"></div>
+<div class="grid major" style="top:1296.0px"></div>
+<div class="tick tickmaj" style="top:1285.0px"><span class="el">12p</span><span class="ck">+27:00</span></div>
+<div class="grid" style="top:1344.0px"></div>
+<div class="grid" style="top:1392.0px"></div>
+<div class="tick" style="top:1381.0px"><span class="el">2p</span><span class="ck">+29:00</span></div>
+<div class="grid" style="top:1440.0px"></div>
+<div class="grid" style="top:1488.0px"></div>
+<div class="tick" style="top:1477.0px"><span class="el">4p</span><span class="ck">+31:00</span></div>
+<div class="grid" style="top:1536.0px"></div>
+<div class="grid major" style="top:1584.0px"></div>
+<div class="tick tickmaj" style="top:1573.0px"><span class="el">6p</span><span class="ck">+33:00</span></div>
+<div class="grid" style="top:1632.0px"></div>
+<div class="grid" style="top:1680.0px"></div>
+<div class="tick" style="top:1669.0px"><span class="el">8p</span><span class="ck">+35:00</span></div>
+<div class="grid" style="top:1728.0px"></div>
+<div class="grid" style="top:1776.0px"></div>
+<div class="tick" style="top:1765.0px"><span class="el">10p</span><span class="ck">+37:00</span></div>
+<div class="grid" style="top:1824.0px"></div>
+<div class="grid major midnight" style="top:1872.0px"></div>
+<div class="tick tickmaj" style="top:1861.0px"><span class="dy">FRI</span><span class="el">12a</span><span class="ck">+39:00</span></div>
+<div class="grid" style="top:1920.0px"></div>
+<div class="grid" style="top:1968.0px"></div>
+<div class="tick" style="top:1957.0px"><span class="el">2a</span><span class="ck">+41:00</span></div>
+<div class="grid" style="top:2016.0px"></div>
+<div class="grid" style="top:2064.0px"></div>
+<div class="tick" style="top:2053.0px"><span class="el">4a</span><span class="ck">+43:00</span></div>
+<div class="grid" style="top:2112.0px"></div>
+<div class="grid major" style="top:2160.0px"></div>
+<div class="tick tickmaj" style="top:2149.0px"><span class="el">6a</span><span class="ck">+45:00</span></div>
+<div class="grid" style="top:2208.0px"></div>
+<div class="grid" style="top:2256.0px"></div>
+<div class="tick" style="top:2245.0px"><span class="el">8a</span><span class="ck">+47:00</span></div>
+<div class="grid" style="top:2304.0px"></div>
+<div class="grid" style="top:2352.0px"></div>
+<div class="tick" style="top:2341.0px"><span class="el">10a</span><span class="ck">+49:00</span></div>
+<div class="grid" style="top:2400.0px"></div>
+<div class="grid major" style="top:2448.0px"></div>
+<div class="tick tickmaj" style="top:2437.0px"><span class="el">12p</span><span class="ck">+51:00</span></div>
+<div class="grid" style="top:2496.0px"></div>
+<div class="grid" style="top:2544.0px"></div>
+<div class="tick" style="top:2533.0px"><span class="el">2p</span><span class="ck">+53:00</span></div>
+<div class="grid" style="top:2592.0px"></div>
+<div class="grid" style="top:2640.0px"></div>
+<div class="tick" style="top:2629.0px"><span class="el">4p</span><span class="ck">+55:00</span></div>
+<div class="grid" style="top:2688.0px"></div>
+<div class="grid major" style="top:2736.0px"></div>
+<div class="tick tickmaj" style="top:2725.0px"><span class="el">6p</span><span class="ck">+57:00</span></div>
+<div class="grid" style="top:2784.0px"></div>
+<div class="grid" style="top:2832.0px"></div>
+<div class="tick" style="top:2821.0px"><span class="el">8p</span><span class="ck">+59:00</span></div>
+<div class="grid" style="top:2880.0px"></div>
+<div class="grid" style="top:2928.0px"></div>
+<div class="tick" style="top:2917.0px"><span class="el">10p</span><span class="ck">+61:00</span></div>
+<div class="grid" style="top:2976.0px"></div>
+<div class="grid major midnight" style="top:3024.0px"></div>
+<div class="tick tickmaj" style="top:3013.0px"><span class="dy">SAT</span><span class="el">12a</span><span class="ck">+63:00</span></div>
+<div class="grid" style="top:3072.0px"></div>
+<div class="grid" style="top:3120.0px"></div>
+<div class="tick" style="top:3109.0px"><span class="el">2a</span><span class="ck">+65:00</span></div>
+<div class="grid" style="top:3168.0px"></div>
+<div class="grid" style="top:3216.0px"></div>
+<div class="tick" style="top:3205.0px"><span class="el">4a</span><span class="ck">+67:00</span></div>
+<div class="grid" style="top:3264.0px"></div>
+<div class="grid major" style="top:3312.0px"></div>
+<div class="tick tickmaj" style="top:3301.0px"><span class="el">6a</span><span class="ck">+69:00</span></div>
+<div class="grid" style="top:3360.0px"></div>
+<div class="tick tickmaj tickstart" style="top:-13px"><span class="dy">WED</span><span class="el">9:00a</span><span class="ck">START</span></div>
+<div class="blk ride" style="top:0.0px;height:261.9px"><div class="bc"><b>5:27</b><span class="rng">9:00a &ndash; 2:27p</span></div><div class="bt">Stage 1 · Pennsylvania Creek</div><div class="bd">Ice Rink → Carter Park · 35.7 mi · 5,700 ft</div></div>
+<div class="blk move tiny" style="top:261.9px;height:8.0px"><div class="bc"><b>0:10</b><span class="rng">2:27p &ndash; 2:37p</span></div><div class="bt">Carter Park → Lower Washington</div></div>
+<div class="blk ride tiny" style="top:269.9px;height:6.4px"><div class="bc"><b>0:08</b><span class="rng">2:37p &ndash; 2:45p</span></div><div class="bt">Stage 2 · gun at Lower Washington</div></div>
+<div class="blk stop" style="top:276.3px;height:60.0px"><div class="bc"><b>1:15</b><span class="rng">2:45p &ndash; 4:00p</span></div><div class="bt">HOME — 0.8 mi into stage 2</div><div class="bd">never leave the route · full routine · first light check</div></div>
+<div class="blk ride" style="top:336.3px;height:376.9px"><div class="bc"><b>7:51</b><span class="rng">4:00p &ndash; 11:51p</span></div><div class="bt">Stage 2 · continues to B&B Trailhead</div><div class="bd">up French Gulch Rd · lights on around 8:35 PM</div></div>
+<div class="blk move tiny" style="top:713.2px;height:6.4px"><div class="bc"><b>0:08</b><span class="rng">11:51p &ndash; 11:59p</span></div><div class="bt">B&B Trailhead → home</div></div>
+<div class="blk sleep" style="top:719.6px;height:142.0px"><div class="bc"><b>2:58</b><span class="rng">11:59p &ndash; 2:57a</span></div><div class="bt">Sleep 1 — HOME  ·  SHORT ON PURPOSE</div><div class="bd">~1h45 down inside it · deliberately short — timed so stage 3 guns at 3:05am and you crest French Pass at sunrise</div></div>
+<div class="blk move tiny" style="top:861.6px;height:6.4px"><div class="bc"><b>0:08</b><span class="rng">2:57a &ndash; 3:05a</span></div><div class="bt">Home → Lower Washington</div></div>
+<div class="blk ride" style="top:868.0px;height:409.9px"><div class="bc"><b>8:32</b><span class="rng">3:05a &ndash; 11:37a</span></div><div class="bt">Stage 3 · Mt. Guyot</div><div class="bd">Lower Washington → B&B Trailhead · 40.5 mi · 7,100 ft · past the house ~25m in · the hardest day</div></div>
+<div class="blk move tiny" style="top:1277.9px;height:6.4px"><div class="bc"><b>0:08</b><span class="rng">11:37a &ndash; 11:45a</span></div><div class="bt">B&B Trailhead → home</div></div>
+<div class="blk stop" style="top:1284.3px;height:60.0px"><div class="bc"><b>1:15</b><span class="rng">11:45a &ndash; 1:00p</span></div><div class="bt">HOME — between stages 3 and 4</div><div class="bd">full routine · biggest daylight meal</div></div>
+<div class="blk move tiny" style="top:1344.3px;height:6.4px"><div class="bc"><b>0:08</b><span class="rng">1:00p &ndash; 1:08p</span></div><div class="bt">Home → Lower Washington</div></div>
+<div class="blk ride" style="top:1350.7px;height:365.8px"><div class="bc"><b>7:37</b><span class="rng">1:08p &ndash; 8:45p</span></div><div class="bt">Stage 4 · Aqueduct</div><div class="bd">Lower Washington → B&B Trailhead · 42.3 mi · 6,473 ft</div></div>
+<div class="blk move tiny" style="top:1716.5px;height:6.4px"><div class="bc"><b>0:08</b><span class="rng">8:45p &ndash; 8:53p</span></div><div class="bt">B&B Trailhead → home</div></div>
+<div class="blk sleep decision" style="top:1722.9px;height:276.0px"><div class="bc"><b>5:45</b><span class="rng">8:53p &ndash; 2:38a</span></div><div class="bt">Sleep 2 — HOME  ·  DECISION POINT</div><div class="bd">full routine + 4h down — lands in the early evening now, as you wanted</div></div>
+<div class="blk move tiny" style="top:1998.9px;height:8.0px"><div class="bc"><b>0:10</b><span class="rng">2:38a &ndash; 2:48a</span></div><div class="bt">Home → Beaver Run lot</div></div>
+<div class="blk ride" style="top:2006.9px;height:372.0px"><div class="bc"><b>7:45</b><span class="rng">2:48a &ndash; 10:33a</span></div><div class="bt">Stage 5 · Wheeler</div><div class="bd">Beaver Run lot → Peaks TH · 24.6 mi · 5,227 ft · shortest, steepest · YOUR estimate, no clean reference</div></div>
+<div class="blk move tiny" style="top:2378.9px;height:12.0px"><div class="bc"><b>0:15</b><span class="rng">10:33a &ndash; 10:48a</span></div><div class="bt">Peaks TH → Ice Rink · descent</div></div>
+<div class="blk stop small" style="top:2390.9px;height:36.0px"><div class="bc"><b>0:45</b><span class="rng">10:48a &ndash; 11:33a</span></div><div class="bt">ICE RINK — crewed</div><div class="bd">Lindy stages it · no bike wash, no cooking — the fast stop</div></div>
+<div class="blk ride" style="top:2426.9px;height:300.0px"><div class="bc"><b>6:15</b><span class="rng">11:33a &ndash; 5:48p</span></div><div class="bt">Stage 6 · The Gold Dust Trail</div><div class="bd">Ice Rink → finish · 30.2 mi · 3,740 ft · flattest stage, worst legs · YOUR estimate</div></div>
+<div class="grp" style="top:269.9px;height:443.3px"></div>
+<div class="mark end" style="top:2726.9px"><span>finish — 56:49</span></div>
+<div class="mark target" style="top:2784.0px"><span>58h target</span></div>
+<div class="bank" style="top:2726.9px;height:57.1px"></div>
+</div>
+
+
+<div class="panel">
+<h2>Past finishers — what the Raceflow traces show</h2>
+<p class="lead">Seven finishers across two tracker views. Solid = moving, dashed gaps = stopped. Your plan on the bottom row.</p>
+<svg viewBox="0 0 830 312" width="100%" style="font-family:inherit">
+<line x1="132.0" y1="17.0" x2="132.0" y2="274.0" stroke="#b7bdc3" stroke-width="1"/>
+<text x="132.0" y="293.0" font-size="10" fill="#8b9096" text-anchor="middle">0h</text>
+<line x1="198.8" y1="17.0" x2="198.8" y2="274.0" stroke="#dde1e5" stroke-width="1"/>
+<text x="198.8" y="293.0" font-size="10" fill="#8b9096" text-anchor="middle">6h</text>
+<line x1="265.6" y1="17.0" x2="265.6" y2="274.0" stroke="#b7bdc3" stroke-width="1"/>
+<text x="265.6" y="293.0" font-size="10" fill="#8b9096" text-anchor="middle">12h</text>
+<line x1="332.4" y1="17.0" x2="332.4" y2="274.0" stroke="#dde1e5" stroke-width="1"/>
+<text x="332.4" y="293.0" font-size="10" fill="#8b9096" text-anchor="middle">18h</text>
+<line x1="399.2" y1="17.0" x2="399.2" y2="274.0" stroke="#b7bdc3" stroke-width="1"/>
+<text x="399.2" y="293.0" font-size="10" fill="#8b9096" text-anchor="middle">24h</text>
+<line x1="466.0" y1="17.0" x2="466.0" y2="274.0" stroke="#dde1e5" stroke-width="1"/>
+<text x="466.0" y="293.0" font-size="10" fill="#8b9096" text-anchor="middle">30h</text>
+<line x1="532.8" y1="17.0" x2="532.8" y2="274.0" stroke="#b7bdc3" stroke-width="1"/>
+<text x="532.8" y="293.0" font-size="10" fill="#8b9096" text-anchor="middle">36h</text>
+<line x1="599.6" y1="17.0" x2="599.6" y2="274.0" stroke="#dde1e5" stroke-width="1"/>
+<text x="599.6" y="293.0" font-size="10" fill="#8b9096" text-anchor="middle">42h</text>
+<line x1="666.4" y1="17.0" x2="666.4" y2="274.0" stroke="#b7bdc3" stroke-width="1"/>
+<text x="666.4" y="293.0" font-size="10" fill="#8b9096" text-anchor="middle">48h</text>
+<line x1="733.2" y1="17.0" x2="733.2" y2="274.0" stroke="#dde1e5" stroke-width="1"/>
+<text x="733.2" y="293.0" font-size="10" fill="#8b9096" text-anchor="middle">54h</text>
+<line x1="800.0" y1="17.0" x2="800.0" y2="274.0" stroke="#b7bdc3" stroke-width="1"/>
+<text x="800.0" y="293.0" font-size="10" fill="#8b9096" text-anchor="middle">60h</text>
+<text x="122.0" y="39.0" font-size="12" fill="#15171a" text-anchor="end" font-weight="600">Chase Caughey</text>
+<rect x="132.0" y="28.0" width="341.8" height="15" rx="4" fill="#d4a017" opacity="0.78"/>
+<text x="479.8" y="40.0" font-size="11" font-weight="700" fill="#d4a017">30.7h</text>
+<text x="140.0" y="39.0" font-size="9" fill="#b9bec3">tracker gaps — stops not readable</text>
+<text x="122.0" y="71.0" font-size="12" fill="#15171a" text-anchor="end" font-weight="600">Jeff Kerkove</text>
+<rect x="132.0" y="60.0" width="389.7" height="15" rx="4" fill="#8fb8dd" opacity="0.78"/>
+<rect x="321.3" y="60.0" width="22.3" height="15" rx="3" fill="#fff" opacity=".84"/>
+<rect x="321.3" y="60.0" width="22.3" height="15" rx="3" fill="none" stroke="#8fb8dd" stroke-width="1" stroke-dasharray="2 2"/>
+<text x="527.7" y="72.0" font-size="11" font-weight="700" fill="#8fb8dd">35h</text>
+<text x="122.0" y="103.0" font-size="12" fill="#15171a" text-anchor="end" font-weight="600">Chris Fisher</text>
+<rect x="132.0" y="92.0" width="545.5" height="15" rx="4" fill="#c0392b" opacity="0.78"/>
+<rect x="332.4" y="92.0" width="33.4" height="15" rx="3" fill="#fff" opacity=".84"/>
+<rect x="332.4" y="92.0" width="33.4" height="15" rx="3" fill="none" stroke="#c0392b" stroke-width="1" stroke-dasharray="2 2"/>
+<rect x="466.0" y="92.0" width="44.5" height="15" rx="3" fill="#fff" opacity=".84"/>
+<rect x="466.0" y="92.0" width="44.5" height="15" rx="3" fill="none" stroke="#c0392b" stroke-width="1" stroke-dasharray="2 2"/>
+<text x="683.5" y="104.0" font-size="11" font-weight="700" fill="#c0392b">49h</text>
+<text x="122.0" y="135.0" font-size="12" fill="#15171a" text-anchor="end" font-weight="600">Yuki Ikeda</text>
+<rect x="132.0" y="124.0" width="553.3" height="15" rx="4" fill="#7fa8cf" opacity="0.78"/>
+<text x="691.3" y="136.0" font-size="11" font-weight="700" fill="#7fa8cf">49.7h</text>
+<text x="140.0" y="135.0" font-size="9" fill="#b9bec3">tracker gaps — stops not readable</text>
+<text x="122.0" y="167.0" font-size="12" fill="#15171a" text-anchor="end" font-weight="600">Chris Joice</text>
+<rect x="132.0" y="156.0" width="590.1" height="15" rx="4" fill="#7d3cc0" opacity="0.78"/>
+<rect x="321.3" y="156.0" width="89.1" height="15" rx="3" fill="#fff" opacity=".84"/>
+<rect x="321.3" y="156.0" width="89.1" height="15" rx="3" fill="none" stroke="#7d3cc0" stroke-width="1" stroke-dasharray="2 2"/>
+<rect x="633.0" y="156.0" width="55.7" height="15" rx="3" fill="#fff" opacity=".84"/>
+<rect x="633.0" y="156.0" width="55.7" height="15" rx="3" fill="none" stroke="#7d3cc0" stroke-width="1" stroke-dasharray="2 2"/>
+<text x="728.1" y="168.0" font-size="11" font-weight="700" fill="#7d3cc0">53h</text>
+<text x="122.0" y="199.0" font-size="12" fill="#15171a" text-anchor="end" font-weight="600">Nora Fierman</text>
+<rect x="132.0" y="188.0" width="590.1" height="15" rx="4" fill="#3f8f3f" opacity="0.78"/>
+<rect x="299.0" y="188.0" width="77.9" height="15" rx="3" fill="#fff" opacity=".84"/>
+<rect x="299.0" y="188.0" width="77.9" height="15" rx="3" fill="none" stroke="#3f8f3f" stroke-width="1" stroke-dasharray="2 2"/>
+<rect x="399.2" y="188.0" width="33.4" height="15" rx="3" fill="#fff" opacity=".84"/>
+<rect x="399.2" y="188.0" width="33.4" height="15" rx="3" fill="none" stroke="#3f8f3f" stroke-width="1" stroke-dasharray="2 2"/>
+<rect x="588.5" y="188.0" width="77.9" height="15" rx="3" fill="#fff" opacity=".84"/>
+<rect x="588.5" y="188.0" width="77.9" height="15" rx="3" fill="none" stroke="#3f8f3f" stroke-width="1" stroke-dasharray="2 2"/>
+<text x="728.1" y="200.0" font-size="11" font-weight="700" fill="#3f8f3f">53h</text>
+<text x="122.0" y="231.0" font-size="12" fill="#15171a" text-anchor="end" font-weight="600">Jesse Harodetsky</text>
+<rect x="132.0" y="220.0" width="629.0" height="15" rx="4" fill="#b5651d" opacity="0.78"/>
+<text x="767.0" y="232.0" font-size="11" font-weight="700" fill="#b5651d">56.5h</text>
+<text x="140.0" y="231.0" font-size="9" fill="#b9bec3">tracker gaps — stops not readable</text>
+<line x1="24.0" y1="247.0" x2="800.0" y2="247.0" stroke="#cfd4d8" stroke-width="1"/>
+<text x="122.0" y="266.0" font-size="12" fill="#15171a" text-anchor="end" font-weight="750">YOU — planned</text>
+<rect x="132.0" y="255.0" width="638.2" height="15" rx="4" fill="#b0651a" opacity="0.95"/>
+<rect x="194.6" y="255.0" width="15.4" height="15" rx="3" fill="#fff" opacity=".84"/>
+<rect x="194.6" y="255.0" width="15.4" height="15" rx="3" fill="none" stroke="#b0651a" stroke-width="1" stroke-dasharray="2 2"/>
+<rect x="298.8" y="255.0" width="38.6" height="15" rx="3" fill="#fff" opacity=".84"/>
+<rect x="298.8" y="255.0" width="38.6" height="15" rx="3" fill="none" stroke="#b0651a" stroke-width="1" stroke-dasharray="2 2"/>
+<rect x="456.3" y="255.0" width="13.9" height="15" rx="3" fill="#fff" opacity=".84"/>
+<rect x="456.3" y="255.0" width="13.9" height="15" rx="3" fill="none" stroke="#b0651a" stroke-width="1" stroke-dasharray="2 2"/>
+<rect x="551.9" y="255.0" width="64.0" height="15" rx="3" fill="#fff" opacity=".84"/>
+<rect x="551.9" y="255.0" width="64.0" height="15" rx="3" fill="none" stroke="#b0651a" stroke-width="1" stroke-dasharray="2 2"/>
+<rect x="680.9" y="255.0" width="8.4" height="15" rx="3" fill="#fff" opacity=".84"/>
+<rect x="680.9" y="255.0" width="8.4" height="15" rx="3" fill="none" stroke="#b0651a" stroke-width="1" stroke-dasharray="2 2"/>
+<text x="776.2" y="267.0" font-size="11" font-weight="700" fill="#b0651a">57h19</text>
+</svg>
+<ol style="margin-top:18px">
+<li><b>There are two events happening here, and nothing in between.</b> Finishers cluster at <b>31–35 hours</b> and at <b>49–57 hours</b>. Not one rider landed in the fourteen-hour void between them. The fast group rides straight through; everyone else sleeps twice. That is a choice made before the gun, not a result that emerges during the race.</li>
+<li><b>The race splits in the first night, not the last day.</b> In the clean traces every rider sits within a couple of miles of the others through hour 15, then fans out. Nobody rode away from anybody — they slept away from each other.</li>
+<li><b>Fierman rode faster than Fisher and finished four hours later.</b> 6.0 mph against 5.2, and it bought her nothing: 17 hours off the bike to his 7. That single comparison is the whole 49–57 hour group.</li>
+<li><b>Caughey's 30.7 is the fastest number on the board</b> — 7.1 mph overall for 217 miles and 34,805 feet. Worth knowing it exists; not worth chasing.</li>
+<li><b>Your projection sits at the back of the sleep-twice cluster, by minutes.</b> 57h19 against Harodetsky's ~56.5. You are inside the pack, not off the back of it — and you are the only one here with a written stop plan.</li>
+</ol>
+</div>
+
+<div class="panel">
+<h2>Riding pace vs. stopped time</h2>
+<p class="lead">217 miles, 34,805 ft. Overall speed is the finish line; riding speed backs the stops out. Stops read off the traces — treat as ±1h, and only where the tracker was continuous.</p>
+<table class="t">
+<tr><th>Rider</th><th>Finish</th><th>Stopped</th><th>Riding</th><th>Riding speed</th><th>Overall</th></tr>
+<tr><td><b>Chase Caughey</b></td><td class="n">30h42</td><td class="n">—</td><td class="n">—</td><td class="n sm">not readable</td><td class="n"><b>7.1 mph</b></td></tr>
+<tr><td><b>Jeff Kerkove</b></td><td class="n">35h</td><td class="n">~2h</td><td class="n">~33h</td><td class="n"><b>6.6 mph</b></td><td class="n">6.2 mph</td></tr>
+<tr><td><b>Chris Fisher</b></td><td class="n">49h</td><td class="n">~7h</td><td class="n">~42h</td><td class="n">5.2 mph</td><td class="n">4.4 mph</td></tr>
+<tr><td><b>Yuki Ikeda</b></td><td class="n">49h42</td><td class="n">—</td><td class="n">—</td><td class="n sm">not readable</td><td class="n">4.4 mph</td></tr>
+<tr><td><b>Nora Fierman</b></td><td class="n">53h</td><td class="n">~17h</td><td class="n">~36h</td><td class="n"><b>6.0 mph</b></td><td class="n">4.1 mph</td></tr>
+<tr><td><b>Chris Joice</b></td><td class="n">53h</td><td class="n">~13h</td><td class="n">~40h</td><td class="n">5.4 mph</td><td class="n">4.1 mph</td></tr>
+<tr><td><b>Jesse Harodetsky</b></td><td class="n">~56h30</td><td class="n">—</td><td class="n">—</td><td class="n sm">not readable</td><td class="n">3.8 mph</td></tr>
+<tr style="background:#fbecd8"><td><b>You — planned</b></td><td class="n"><b>57h19</b></td><td class="n">12h28</td><td class="n">43h36</td><td class="n">5.0 mph</td><td class="n">3.8 mph</td></tr>
+</table>
+<p style="font-size:12.5px;color:#6b7280;margin-top:14px"><b>Why three rows say "not readable."</b> Caughey, Ikeda and Harodetsky's traces each contain vertical jumps — 40 to 80 miles gained in essentially zero elapsed time, which is physically impossible. Those are InReach dropouts, and the long plateaus sitting next to them are the same gaps seen from the other side. Harodetsky's trace would imply 31 hours stopped and 25 hours riding at 8.7 mph; it simply isn't real data. Their finish times are solid. Their stop patterns are not, and averaging them in would poison the comparison.</p>
+<p style="font-size:13.5px;margin-top:12px"><b>What this means for the plan.</b> Your projected riding pace of 5.0 mph sits inside the range of every clean finisher (5.2 / 5.4 / 6.0). You are not slow — you are budgeting 12h28 off the bike, which lands between Fisher's 7h and Joice's 13h. Trim toward Fisher and the same legs finish near <b>51 hours</b>. That is the entire lever, and it is a kitchen-timer problem, not a fitness one.</p>
+</div>
+
+
+<div class="panel">
+<h2>Where these stage times come from</h2>
+<p class="lead">Your own rides. Ratio = elapsed hours per unit of course work, where work = miles ÷ 10 + feet ÷ 2,000. Lower is faster.</p>
+<table class="t">
+<tr><th></th><th>Recon ride</th><th>Course</th><th>Elapsed</th><th>Ratio</th><th>Note</th></tr>
+<tr><td><b>S1</b></td><td>Breck epic stage 1<br><span class="sm">Sat 11 Jul 26, 1:20pm</span></td><td class="n">38.1 mi<br><span class="sm">5,501 ft</span></td><td class="n">5:32:23<br><span class="sm">mov 4:49:35</span></td><td class="n">0.84</td><td class="sm">full course</td></tr><tr><td><b>S2</b></td><td>Segment 2 co trail<br><span class="sm">Sun 12 Jul 26, 9:57am</span></td><td class="n">42.2 mi<br><span class="sm">5,807 ft</span></td><td class="n">7:14:24<br><span class="sm">mov 5:56:21</span></td><td class="n">1.02</td><td class="sm">full course</td></tr><tr><td><b>S3</b></td><td>Morning Ride — full Guyot<br><span class="sm">Sun 9 Aug 26, 4:35am</span></td><td class="n">40.3 mi<br><span class="sm">6,181 ft</span></td><td class="n">7:31:38<br><span class="sm">mov 6:22:44</span></td><td class="n">1.06</td><td class="sm">full course · pre-dawn, new Outbound bar light · 51 PRs</td></tr><tr><td><b>S4</b></td><td>Aqueduct 2<br><span class="sm">Tue 15 Jul 26, 7:28pm</span></td><td class="n">23.6 mi<br><span class="sm">3,625 ft</span></td><td class="n">3:39:44<br><span class="sm">mov 3:16:57</span></td><td class="n">0.88</td><td class="sm">~half, at night</td></tr><tr><td><b>S5</b></td><td>Wheeler<br><span class="sm">Sun 20 Jul 25</span></td><td class="n">28.2 mi<br><span class="sm">5,110 ft</span></td><td class="n">7:02:40<br><span class="sm">mov 5:44:18</span></td><td class="n">1.31</td><td class="sm">20 Jul 25 · bulk of the course, last 5–8 mi not ridden · the basis for the 7h45</td></tr><tr><td><b>S6</b></td><td>Stage 6<br><span class="sm">Sat 1 Nov 25, 1:14pm</span></td><td class="n">34.8 mi<br><span class="sm">4,448 ft</span></td><td class="n">6:03:03<br><span class="sm">mov 5:30:47</span></td><td class="n">1.06</td><td class="sm">LAST Nov, half under snow, completion uncertain</td></tr>
+</table>
+<p class="lead" style="margin:18px 0 8px"><b>Last year, same courses</b> — for comparison. You've taken roughly 15% off across the board.</p>
+<table class="t">
+<tr><th>2025 ride</th><th>When</th><th>Course</th><th>Elapsed</th><th>Ratio</th></tr>
+<tr><td>Penn Creek</td><td class="sm">Sat 2 Aug 25</td><td class="n">40.9 mi / 5,634 ft</td><td class="n">6:52:13</td><td class="n">0.99</td></tr><tr><td>CO trail</td><td class="sm">Sun 3 Aug 25, 3:58am</td><td class="n">41.0 mi / 5,757 ft</td><td class="n">7:11:58</td><td class="n">1.03</td></tr><tr><td>Aqueduct</td><td class="sm">Sun 27 Jul 25</td><td class="n">41.0 mi / 5,955 ft</td><td class="n">8:22:45</td><td class="n">1.18</td></tr><tr><td>Wheeler</td><td class="sm">Sun 20 Jul 25</td><td class="n">28.2 mi / 5,110 ft</td><td class="n">7:02:40</td><td class="n">1.31</td></tr>
+</table>
+<p class="lead" style="margin:18px 0 8px"><b>What I used</b> — base ratio from your recon, times a fatigue factor for riding them back to back.</p>
+<table class="t">
+<tr><th>Stage</th><th>Base ratio</th><th>Fatigue</th><th>Projected</th><th>Source</th></tr>
+<tr><td><b>Stage 1</b> Pennsylvania Creek</td><td class="n">0.850</td><td class="n">×1.00</td><td class="n"><b>5:27</b></td><td>measured</td></tr><tr><td><b>Stage 2</b> The Colorado Trail</td><td class="n">1.000</td><td class="n">×1.06</td><td class="n"><b>7:59</b></td><td>measured</td></tr><tr><td><b>Stage 3</b> Mt. Guyot</td><td class="n">1.060</td><td class="n">×1.06</td><td class="n"><b>8:32</b></td><td>measured</td></tr><tr><td><b>Stage 4</b> Aqueduct</td><td class="n">0.880</td><td class="n">×1.16</td><td class="n"><b>7:37</b></td><td>measured</td></tr><tr><td><b>Stage 5</b> Wheeler</td><td class="n">—</td><td class="n">—</td><td class="n"><b>7:45</b></td><td><span style='color:#b0651a;font-weight:700'>your call</span></td></tr><tr><td><b>Stage 6</b> The Gold Dust Trail</td><td class="n">—</td><td class="n">—</td><td class="n"><b>6:15</b></td><td><span style='color:#b0651a;font-weight:700'>your call</span></td></tr>
+</table>
+<p style="font-size:12.5px;color:#6b7280;margin-top:12px"><b>Guyot is measured, not modelled.</b> The 9 Aug full-course ride — 40.3 mi, 6,182 ft, 7:31:38 elapsed — gives a ratio of 1.058. Gold Dust remains an estimate — the only reference is a November ride with half the course under snow, so it is the one stage without a clean summer lap behind it.</p>
+<p style="font-size:12.5px;color:#6b7280;margin-top:8px"><b>Worth noting from that ride:</b> 6h22 moving against 7h31 elapsed — <b>69 minutes stopped</b>, on a solo recon with no aid stations and nothing to fix. Hour-plus stops are the realistic planning figure, not thirty minutes.</p>
+
+<h3 style="margin:26px 0 4px;font-size:16px;letter-spacing:-.2px">Every ride on a Breck Epic course, 2025 and 2026</h3>
+<p class="lead" style="margin:0 0 10px">Chronological. This is the whole evidence base the projections above are built on.</p>
+<table class="t log">
+<tr><th style="width:96px">Date</th><th>Ride</th><th class="n">Stage</th><th class="n">Distance</th><th class="n">Climbing</th><th class="n">Elapsed</th><th>Note</th></tr>
+<tr class="yr"><td colspan="7">2025 season</td></tr><tr><td class="sm">Sun 20 Jul 25</td><td><b>Wheeler</b></td><td class="n sm">S5</td><td class="n">28.2 mi</td><td class="n">5,110 ft</td><td class="n">7:02:40</td><td class="sm">Bulk of the course — last 5–8 mi not ridden</td></tr><tr><td class="sm">Sun 27 Jul 25</td><td><b>Aqueduct</b></td><td class="n sm">S4</td><td class="n">41.0 mi</td><td class="n">5,955 ft</td><td class="n">8:22:45</td><td class="sm">Full course</td></tr><tr><td class="sm">Sat 2 Aug 25</td><td><b>Penn Creek</b></td><td class="n sm">S1</td><td class="n">40.9 mi</td><td class="n">5,634 ft</td><td class="n">6:52:13</td><td class="sm">Full course · first of a back-to-back block</td></tr><tr><td class="sm">Sun 3 Aug 25</td><td><b>Colorado Trail</b></td><td class="n sm">S2</td><td class="n">41.0 mi</td><td class="n">5,757 ft</td><td class="n">7:11:58</td><td class="sm">Full course · 3:58am start, day two of the block</td></tr><tr><td class="sm">Sun 3 Aug 25</td><td><b>Mt. Guyot (partial)</b></td><td class="n sm">S3</td><td class="n">—</td><td class="n">—</td><td class="n">—</td><td class="sm">Night ride, same block — partial, no clean split</td></tr><tr><td class="sm">Sat 1 Nov 25</td><td><b>Gold Dust</b></td><td class="n sm">S6</td><td class="n">34.8 mi</td><td class="n">4,448 ft</td><td class="n">6:03:03</td><td class="sm">Half the course under snow · completion uncertain</td></tr><tr class="yr"><td colspan="7">2026 season</td></tr><tr><td class="sm">Sat 11 Jul 26</td><td><b>Breck Epic stage 1</b></td><td class="n sm">S1</td><td class="n">38.1 mi</td><td class="n">5,501 ft</td><td class="n">5:32:23</td><td class="sm">Full course · 1:20pm start</td></tr><tr><td class="sm">Sun 12 Jul 26</td><td><b>Segment 2 CO Trail</b></td><td class="n sm">S2</td><td class="n">42.2 mi</td><td class="n">5,807 ft</td><td class="n">7:14:24</td><td class="sm">Full course · 9:57am start</td></tr><tr><td class="sm">Sun 12 Jul 26</td><td><b>Mt. Guyot (partial)</b></td><td class="n sm">S3</td><td class="n">—</td><td class="n">—</td><td class="n">—</td><td class="sm">Night ride, same weekend — partial</td></tr><tr><td class="sm">Tue 15 Jul 26</td><td><b>Aqueduct 2</b></td><td class="n sm">S4</td><td class="n">23.6 mi</td><td class="n">3,625 ft</td><td class="n">3:39:44</td><td class="sm">~Half the course, at night · 7:28pm start</td></tr><tr><td class="sm">Thu 16 Jul 26</td><td><b>Wheeler-distance, pre-dawn</b></td><td class="n sm">S5</td><td class="n">—</td><td class="n">—</td><td class="n">—</td><td class="sm">Logged as a Wheeler-distance effort — not a clean course lap</td></tr><tr><td class="sm">Sun 9 Aug 26</td><td><b>Morning Ride — full Guyot</b></td><td class="n sm">S3</td><td class="n">40.3 mi</td><td class="n">6,181 ft</td><td class="n">7:31:38</td><td class="sm">Full course · 4:35am, new Outbound bar light · 51 PRs</td></tr>
+</table>
+<p style="font-size:12.5px;color:#6b7280;margin-top:12px">Two stages still have no clean summer lap behind them. <b>Wheeler</b> was last ridden properly in July 2025 and left unfinished by 5–8 miles; <b>Gold Dust</b> has only the November snow ride. Those are the two projections carrying your own estimate rather than a measured ratio — and they are also the last two stages of the route, ridden on the worst legs.</p>
+</div>
+<div class="panel">
+<h2>The stop routine — same every time, so it's stated once</h2>
+<p>Every house stop is the same list. The only thing that changes between them is <b>where</b>, which is what the timeline tracks.</p>
+<div class="routine"><span>Real food</span><span>Refill bottle + Tailwind</span><span>Clean &amp; lube the chain</span>
+<span>Kit change</span><span>Lights on / off / recharge</span><span>Restock bars + drink mix</span><span>Feet &amp; chamois</span></div>
+<p style="margin-top:11px"><b>Ice rink is the exception:</b> crewed by Lindy, no bike wash, no cooking. 45 minutes, not 75.</p>
+</div>
+
+
+
+<div class="notes">
+<p><b>This is a solo ITT, not the Mega Epic — which changes the support picture.</b> Registered Mega riders may use Epic's aid stations. You are riding the same 217 miles independently, so <b>assume no course support at all</b>: no aid stations, no water drops, no feed zones. Your resupply is exactly three points — the house twice, the ice rink once — plus streams. That makes the Sawyer core equipment rather than a backup, and it means every past finisher below had a materially easier day than the one drawn here.</p>
+<p><b>One practical consequence:</b> stage 3 has three aid stations across 40.5 miles and stage 4 has three across 42.3. Riding those dry on a 0.8 L bottle means the filter comes out several times per stage. Worth knowing your water sources on Guyot and Aqueduct before Wednesday — that's map work, not riding, so it costs the taper nothing.</p>
+<p><b>Assumptions:</b> house stops 1h15, ice rink 45m, sleep blocks 4h down inside 5h45 of stop; transfers 8–15m each (1:15 total, all real pedaling that appears in no stage total); full dark 8:35 PM–5:45 AM; horizon drawn to 70h.</p>
+<p><b>Sensitivity:</b> if you ride to your <i>moving</i> times rather than elapsed — i.e. barely stop on course — this comes in nearer 54h. If Guyot goes badly, add an hour and you're still inside 58. The plan is no longer fragile.</p>
+</div>
+
+</div></body></html>

@@ -57,6 +57,17 @@
     minute: '2-digit',
     timeZone: CFG.timeZone,
   });
+  // Full date for the start: over a three-day effort "Wed 9:00 AM" is not
+  // enough on its own, especially for anyone opening the page cold.
+  const fullDateFmt = new Intl.DateTimeFormat('en-US', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    timeZoneName: 'short',
+    timeZone: CFG.timeZone,
+  });
 
   function hhmm(ms) {
     if (!Number.isFinite(ms) || ms < 0) return '—';
@@ -101,53 +112,6 @@
     totalMiles: CFG.totalMiles,
     markers: [],
   };
-
-  /**
-   * Nearest point on the course to a fix. Returns the along-course mileage,
-   * how far off the line it is, and which stage that mileage falls in.
-   *
-   * This is what makes "he is on the Georgia Pass climb" possible instead of
-   * "he is at 39.48, -105.94", and it is why the distance readout can be real
-   * course distance rather than straight lines between ten-minute samples.
-   */
-  function snapToCourse(lat, lon) {
-    if (!course.loaded) return null;
-    const { lon: xs, lat: ys, cumMiles } = course;
-    const py = lat * LAT_SCALE;
-    const px = lon * LON_SCALE;
-
-    let bestD2 = Infinity;
-    let bestMile = 0;
-
-    for (let i = 1; i < xs.length; i++) {
-      const ax = xs[i - 1] * LON_SCALE, ay = ys[i - 1] * LAT_SCALE;
-      const bx = xs[i] * LON_SCALE, by = ys[i] * LAT_SCALE;
-      const dx = bx - ax, dy = by - ay;
-      const len2 = dx * dx + dy * dy;
-      let t = 0;
-      if (len2 > 0) t = Math.max(0, Math.min(1, ((px - ax) * dx + (py - ay) * dy) / len2));
-      const cx = ax + t * dx, cy = ay + t * dy;
-      const d2 = (px - cx) ** 2 + (py - cy) ** 2;
-      if (d2 < bestD2) {
-        bestD2 = d2;
-        bestMile = cumMiles[i - 1] + t * (cumMiles[i] - cumMiles[i - 1]);
-      }
-    }
-
-    const offMiles = Math.sqrt(bestD2);
-    const onCourse = offMiles <= OFF_COURSE_MILES;
-    const span = course.stageSpans.find((s) => bestMile >= s.startMile && bestMile <= s.endMile);
-    return {
-      mile: bestMile,
-      offMiles,
-      onCourse,
-      stage: span ? span.stage : null,
-      stageName: span ? span.name : null,
-      // Between a stage finish and the next start he is transferring, which is
-      // a real state and not an error.
-      transfer: !span,
-    };
-  }
 
   /** Most recent named climb or landmark at or behind a course mileage. */
   function featureAt(mile) {
@@ -228,6 +192,266 @@
     return planCurve[planCurve.length - 1].mile;
   }
 
+  /* ---------- stage status ---------- */
+
+  // Snapping is the expensive part of this page, so each fix is snapped once
+  // and remembered. Over 58 hours that is a few hundred entries.
+  const mileCache = new Map();
+
+  /**
+   * Which stage the schedule says he is on at a given elapsed time, and
+   * whether he should be between stages.
+   *
+   * The stages are ridden 1 through 6 in sequence with no variation, so the
+   * schedule alone narrows the position to one stage — which is what makes the
+   * course's self-overlap tractable. Time proposes; position confirms.
+   */
+  function scheduledStageAt(elapsedH) {
+    if (elapsedH < 0) return { stage: null, state: 'before' };
+    for (const s of CFG.stages) {
+      const a = s.startOffsetHours;
+      const b = a + s.durationHours;
+      if (elapsedH >= a && elapsedH <= b) return { stage: s.n, state: 'on' };
+    }
+    // In a gap: name it from the breaks list.
+    let prev = null;
+    for (const s of CFG.stages) {
+      if (elapsedH > s.startOffsetHours + s.durationHours) prev = s.n;
+    }
+    if (prev == null) return { stage: null, state: 'before' };
+    if (prev >= CFG.stages.length) return { stage: null, state: 'after' };
+    const br = CFG.breaks.find((b) => b.afterStage === prev);
+    return { stage: null, state: 'break', afterStage: prev, label: br ? br.label : 'Between stages', kind: br ? br.kind : 'stop' };
+  }
+
+  /**
+   * Resolve a fix to a stage and a course mileage.
+   *
+   * Candidates are the stage the schedule implies plus its neighbours, so
+   * being an hour up or down the road still resolves correctly — but the Ice
+   * Rink at mile 216 is never a candidate while the clock says stage 1. The
+   * best fit by perpendicular distance wins.
+   */
+  function resolveFix(lat, lon, elapsedH, floorStage, prevMile = null) {
+    if (!course.loaded || !course.stageSpans.length) return null;
+    const sched = scheduledStageAt(elapsedH);
+    // During a break he is parked at the finish of the stage he just rode, not
+    // at the start of the next one — even though those are the same trailhead.
+    const centre =
+      sched.stage ?? (sched.state === 'break' ? sched.afterStage : sched.state === 'after' ? 6 : 1);
+
+    const candidates = [];
+    for (let n = centre - 1; n <= centre + 1; n++) {
+      if (n < 1 || n > CFG.stages.length) continue;
+      // Never resolve backwards past a stage already completed.
+      if (floorStage && n < floorStage) continue;
+      const span = course.stageSpans.find((x) => x.stage === n);
+      if (span) candidates.push(span);
+    }
+    if (!candidates.length) return null;
+
+    // Stages share trailheads, so a fix at a stage finish sits exactly on the
+    // next stage's start too. Position alone cannot separate those; the clock
+    // can. A neighbouring stage has to fit measurably better than the one the
+    // schedule expects before it wins.
+    const OFF_SCHEDULE_PENALTY = 0.15; // miles
+
+    // Continuity inside the stage as well as between stages. A stage can begin
+    // and end at the same trailhead — stage 2 runs Lower Washington to B&B, and
+    // the master line puts Lower Washington at both mile 36 and mile 77 — so
+    // without this a fix at the start of a stage snaps to its finish.
+    const JUMP_MILES = 25; // covers a 90-minute outage at any plausible pace
+
+    let best = null;
+    for (const span of candidates) {
+      const lo = prevMile == null ? span.startMile : Math.max(span.startMile, prevMile - 1);
+      const hi = prevMile == null ? span.endMile : Math.min(span.endMile, prevMile + JUMP_MILES);
+      // An empty window means this stage is not reachable from where he was.
+      // Falling back to the whole span here would undo the constraint entirely
+      // and let a stage match at a trailhead forty miles up the course.
+      if (hi <= lo) continue;
+      const snap = snapWithin(lat, lon, lo, hi);
+      if (!snap) continue;
+      const score = snap.offMiles + (span.stage === centre ? 0 : OFF_SCHEDULE_PENALTY);
+      if (!best || score < best.score) best = { ...snap, score, stage: span.stage, span };
+    }
+    if (!best) return null;
+
+    return {
+      mile: best.mile,
+      offMiles: best.offMiles,
+      onCourse: best.offMiles <= OFF_COURSE_MILES,
+      stage: best.stage,
+      stageName: (CFG.stages.find((s) => s.n === best.stage) || {}).name || null,
+      scheduled: sched,
+      // On a break the schedule expects him off-stage; say so rather than
+      // reporting a stage he is only near because the trailhead is there.
+      transfer: sched.state === 'break',
+    };
+  }
+
+  /** Nearest point on the course between two mileages. */
+  function snapWithin(lat, lon, loMile, hiMile) {
+    const { lon: xs, lat: ys, cumMiles } = course;
+    const py = lat * LAT_SCALE;
+    const px = lon * LON_SCALE;
+    let bestD2 = Infinity;
+    let bestMile = null;
+
+    for (let i = 1; i < xs.length; i++) {
+      if (cumMiles[i] < loMile) continue;
+      if (cumMiles[i - 1] > hiMile) break;
+      const ax = xs[i - 1] * LON_SCALE, ay = ys[i - 1] * LAT_SCALE;
+      const bx = xs[i] * LON_SCALE, by = ys[i] * LAT_SCALE;
+      const dx = bx - ax, dy = by - ay;
+      const len2 = dx * dx + dy * dy;
+      let t = 0;
+      if (len2 > 0) t = Math.max(0, Math.min(1, ((px - ax) * dx + (py - ay) * dy) / len2));
+      const d2 = (px - (ax + t * dx)) ** 2 + (py - (ay + t * dy)) ** 2;
+      if (d2 < bestD2) {
+        bestD2 = d2;
+        bestMile = cumMiles[i - 1] + t * (cumMiles[i] - cumMiles[i - 1]);
+      }
+    }
+    return bestMile == null ? null : { mile: bestMile, offMiles: Math.sqrt(bestD2) };
+  }
+
+  /**
+   * Resolved mileage and stage for a fix, computed once and remembered.
+   * The stage is taken from the resolver rather than re-derived from the
+   * mileage, so the rail and the headline can never disagree — consecutive
+   * stages share a boundary mile and re-deriving picks the wrong side of it.
+   */
+  function resolvedOf(fix, floorStage, prevMile = null) {
+    // Never cache before the course index has arrived. The first refresh races
+    // the course fetch, and caching a null here permanently marks fixes as
+    // unresolvable — which showed up as stages with one fix and 0:00 durations.
+    if (!course.loaded) return null;
+    if (mileCache.has(fix.id)) return mileCache.get(fix.id);
+    const elapsedH = (fix.t * 1000 - START_MS) / 3600000;
+    const r = resolveFix(fix.lat, fix.lon, elapsedH, floorStage, prevMile);
+    const out = r && r.onCourse ? { mile: r.mile, stage: r.transfer ? r.stage : r.stage } : null;
+    mileCache.set(fix.id, out);
+    return out;
+  }
+
+  /**
+   * Per-stage status derived from the track itself, not the clock.
+   *
+   * Progress is taken as the furthest point reached rather than the latest, so
+   * a fix that snaps backwards — off-course scatter, or the course doubling
+   * back on itself — cannot un-finish a stage that was already completed.
+   */
+  /** Highest stage number confirmed reached, used as a ratchet. */
+  function furthestStage(fixes) {
+    let best = 0;
+    for (const f of fixes) {
+      const r = mileCache.get(f.id);
+      if (r && r.stage > best) best = r.stage;
+    }
+    return best;
+  }
+
+  function stageStatuses(fixes) {
+    const spans = course.stageSpans;
+    if (!spans.length) return [];
+
+    // Resolve every fix to a stage, walking forward so the stage only ever
+    // ratchets up. Completion is then "a later stage has been seen", which is
+    // sound because the stages are ridden 1 through 6 with no variation —
+    // rather than "a mileage threshold was crossed", which is not, because
+    // consecutive stages share a trailhead and therefore a mileage.
+    const seen = new Map(); // stage -> { firstT, lastT, maxMile }
+    let peak = -1;
+    let floor = 0;
+    let prevMile = null;
+    for (const f of fixes) {
+      // Anything before the gun is him moving around town, not progress.
+      if (f.t * 1000 < START_MS) continue;
+      const r = resolvedOf(f, floor, prevMile);
+      if (!r || r.stage == null) continue;
+      prevMile = r.mile;
+      if (r.stage > floor) floor = r.stage;
+      if (r.mile > peak) peak = r.mile;
+      const span = spans.find((x) => x.stage === r.stage);
+      const rec = seen.get(r.stage) || { firstT: f.t, lastT: f.t, maxMile: r.mile, rollingT: null, endT: null };
+      rec.lastT = f.t;
+      rec.maxMile = Math.max(rec.maxMile, r.mile);
+      // Boundary miles are shared between consecutive stages, so sitting at
+      // home between stages otherwise counts against the stage he just rode.
+      // Bracket each stage by when he was demonstrably on it, not adjacent
+      // to it: a quarter mile in, and a quarter mile from the finish.
+      if (span) {
+        if (rec.rollingT == null && r.mile > span.startMile + 0.25) rec.rollingT = f.t;
+        if (rec.endT == null && r.mile >= span.endMile - 0.25) rec.endT = f.t;
+      }
+      seen.set(r.stage, rec);
+    }
+    const current = floor;
+    const nowSched = scheduledStageAt((Date.now() - START_MS) / 3600000);
+
+    const elapsedH = (Date.now() - START_MS) / 3600000;
+    const deltaH = (() => {
+      if (!planCurve || peak < 0 || elapsedH < 0) return 0;
+      return elapsedH - plannedHoursAtMile(peak);
+    })();
+
+    return CFG.stages.map((s) => {
+      const span = spans.find((x) => x.stage === s.n);
+      const rec = seen.get(s.n);
+      if (!span) return { stage: s, state: 'todo' };
+
+      const startedT = rec ? (rec.rollingT ?? rec.firstT) : null;
+
+      if (current > s.n && rec) {
+        const finishedT = rec.endT ?? rec.lastT;
+        return {
+          stage: s,
+          span,
+          state: 'done',
+          startedT,
+          finishedT,
+          durationMs: Math.max(0, (finishedT - startedT) * 1000),
+        };
+      }
+      // If the schedule has him in the break that follows this stage, and he
+      // has covered its distance, the stage is finished — he is at home, not
+      // still riding it. Without this it stays "in progress" all through a
+      // five-hour sleep.
+      if (current === s.n && rec && nowSched.state === 'break' && nowSched.afterStage === s.n && rec.endT) {
+        return {
+          stage: s,
+          span,
+          state: 'done',
+          startedT,
+          finishedT: rec.endT,
+          durationMs: Math.max(0, (rec.endT - startedT) * 1000),
+        };
+      }
+      if (current === s.n && rec) {
+        return {
+          stage: s,
+          span,
+          state: 'active',
+          startedT,
+          runningMs: Date.now() - startedT * 1000,
+          milesIn: Math.max(0, rec.maxMile - span.startMile),
+          milesTotal: span.miles,
+        };
+      }
+      // Not reached. Project the plan forward by however far behind he is.
+      const planStartMs = START_MS + s.startOffsetHours * 3600000;
+      return {
+        stage: s,
+        span,
+        state: 'todo',
+        etaStartMs: planStartMs + deltaH * 3600000,
+        estDurationMs: s.durationHours * 3600000,
+        shifted: Math.abs(deltaH) >= 1 / 3,
+      };
+    });
+  }
+
   /* ---------- stopped or moving ---------- */
 
   /**
@@ -268,22 +492,84 @@
   let emphasised = null;
   let tileErrors = 0;
 
-  /**
-   * Six overlapping stage lines at equal weight is a plate of spaghetti. Lift
-   * the stage he is actually on and let the rest recede to context.
-   */
+  // Which stage traces are drawn. Colour now does the work of telling them
+  // apart, so this is about reducing clutter rather than rescuing legibility.
+  const shown = new Set([1, 2, 3, 4, 5, 6]);
+
+  /** The stage he is on is drawn heavier; the rest stay full colour. */
   function emphasiseStage(n) {
-    if (n === emphasised) return;
     emphasised = n;
-    for (const [k, poly] of Object.entries(stagePolys)) {
-      const active = Number(k) === n;
-      poly.setStyle({
-        opacity: n == null ? 0.45 : active ? 0.9 : 0.22,
-        weight: active ? 3.5 : 2.5,
-        color: active ? '#4A6B3A' : '#6E4A26',
-      });
-      if (active) poly.bringToFront();
+    applyStageStyles();
+  }
+
+  function applyStageStyles() {
+    for (const [k, pair] of Object.entries(stagePolys)) {
+      const num = Number(k);
+      const on = shown.has(num);
+      const active = num === emphasised;
+
+      for (const layer of [pair.casing, pair.poly]) {
+        if (on && !layers.courses.hasLayer(layer)) layers.courses.addLayer(layer);
+        if (!on && layers.courses.hasLayer(layer)) layers.courses.removeLayer(layer);
+      }
+      if (!on) continue;
+
+      pair.casing.setStyle({ weight: active ? 8 : 6 });
+      pair.poly.setStyle({ weight: active ? 4.5 : 3, opacity: active ? 1 : 0.85 });
+      if (active) {
+        pair.casing.bringToFront();
+        pair.poly.bringToFront();
+      }
     }
+    // The live track must never be buried under a course trace.
+    if (drawn.trackLine) drawn.trackLine.bringToFront();
+    if (drawn.head && drawn.head.setZIndexOffset) drawn.head.setZIndexOffset(1000);
+  }
+
+  /** Checkbox per stage, the way a layered map lets you peel routes apart. */
+  function buildLegend() {
+    const box = $('layers');
+    if (!box) return;
+    box.innerHTML = '';
+
+    for (const s of CFG.stages) {
+      const id = `layer-${s.n}`;
+      const row = document.createElement('label');
+      row.className = 'layer';
+      row.innerHTML = `
+        <input type="checkbox" id="${id}" checked>
+        <span class="layer__swatch" style="background:${s.color}"></span>
+        <span class="layer__name">${s.n} · ${s.name}</span>
+        <span class="layer__mi">${s.miles}</span>
+      `;
+      row.querySelector('input').addEventListener('change', (e) => {
+        if (e.target.checked) shown.add(s.n);
+        else shown.delete(s.n);
+        applyStageStyles();
+        syncLegendAll();
+      });
+      box.appendChild(row);
+    }
+
+    const all = $('layers-all');
+    if (all) {
+      all.addEventListener('change', () => {
+        CFG.stages.forEach((s) => {
+          const cb = $(`layer-${s.n}`);
+          if (cb) cb.checked = all.checked;
+          if (all.checked) shown.add(s.n);
+          else shown.delete(s.n);
+        });
+        applyStageStyles();
+      });
+    }
+  }
+
+  function syncLegendAll() {
+    const all = $('layers-all');
+    if (!all) return;
+    all.checked = shown.size === CFG.stages.length;
+    all.indeterminate = shown.size > 0 && shown.size < CFG.stages.length;
   }
 
   function initMap() {
@@ -341,15 +627,26 @@
         const line = geo.geometry.coordinates.map((c) => [c[1], c[0]]);
         if (line.length < 2) continue;
 
+        // A casing under each trace. Six coloured lines crossing each other on
+        // a busy topo need separating from the basemap as well as from each
+        // other, and this is how a printed map does it.
+        const casing = L.polyline(line, {
+          color: '#EDE4D3',
+          weight: 6,
+          opacity: 0.55,
+          lineJoin: 'round',
+        }).addTo(layers.courses);
+
         const poly = L.polyline(line, {
-          color: '#6E4A26',
-          weight: 2.5,
-          opacity: 0.45,
+          color: stage.color || '#6E4A26',
+          weight: 3,
+          opacity: 0.9,
           lineJoin: 'round',
         })
           .bindTooltip(`Stage ${stage.n} — ${stage.name}`, { sticky: true })
           .addTo(layers.courses);
-        stagePolys[stage.n] = poly;
+
+        stagePolys[stage.n] = { poly, casing };
         bounds.push(...line);
       } catch (_) {
         /* a missing course file just means no underlay for that stage */
@@ -367,6 +664,8 @@
         course.totalMiles = idx.totalMiles || CFG.totalMiles;
         course.loaded = Array.isArray(idx.lon) && idx.lon.length > 1;
         planCurve = buildPlanCurve();
+        // Anything resolved before this point was resolved without a course.
+        mileCache.clear();
       }
     } catch (_) {
       /* without the index there is no snapping; everything else still works */
@@ -538,8 +837,10 @@
       where.textContent = 'Off course';
       whereSub.textContent = `${snap.offMiles.toFixed(1)} mi from the route`;
     } else if (snap.transfer) {
-      where.textContent = 'Transferring';
-      whereSub.textContent = 'Between stages';
+      // The schedule says he should be off the bike here. Name the break.
+      const sc = snap.scheduled || {};
+      where.textContent = sc.label || 'Between stages';
+      whereSub.textContent = sc.kind === 'sleep' ? 'Scheduled sleep' : 'Scheduled stop';
     } else {
       const feat = featureAt(snap.mile);
       where.textContent = feat ? feat.title : `Stage ${snap.stage}`;
@@ -703,7 +1004,13 @@
     $('position').textContent = `${last.lat.toFixed(5)}, ${last.lon.toFixed(5)}`;
 
     renderPings(fixes, now);
-    renderCourseReadout(snapToCourse(last.lat, last.lon), fixes, ago(age), age > STALE_MS);
+    const elapsedH = (now - START_MS) / 3600000;
+    renderCourseReadout(
+      resolveFix(last.lat, last.lon, elapsedH, furthestStage(fixes)),
+      fixes,
+      ago(age),
+      age > STALE_MS
+    );
 
     const help = [...points].reverse().find((p) => p.type === 'HELP');
     const cancelled = points.some((p) => p.type === 'HELP-CANCEL' && help && p.t > help.t);
@@ -716,24 +1023,57 @@
     }
   }
 
-  function renderRail() {
+  const LABELS = { todo: 'To do', active: 'In progress', done: 'Complete' };
+
+  /**
+   * Each stage box is shaped by its state, because the three states answer
+   * different questions. A finished stage is a result; the one he is on is a
+   * clock; the ones ahead are a forecast.
+   */
+  function renderRail(fixes) {
     const list = $('stage-rail');
-    const now = Date.now();
     list.innerHTML = '';
 
-    CFG.stages.forEach((s) => {
-      const startMs = START_MS + s.startOffsetHours * 3600000;
-      const endMs = startMs + s.durationHours * 3600000;
+    const statuses = stageStatuses(fixes || []);
+    // Before the start, or with no course data, everything is simply ahead.
+    const fallback = !statuses.length;
 
+    CFG.stages.forEach((s, i) => {
+      const st = fallback ? { stage: s, state: 'todo' } : statuses[i];
       const li = document.createElement('li');
-      li.className =
-        'stage' + (now >= startMs && now < endMs ? ' is-now' : '') + (now >= endMs ? ' is-done' : '');
+      li.className = `stage is-${st.state}`;
+      li.style.setProperty('--stage-color', s.color || 'var(--contour-deep)');
+
+      let body;
+      if (st.state === 'done') {
+        body = `
+          <p class="stage__figure">${st.durationMs != null ? hhmm(st.durationMs) : '—'}</p>
+          <p class="stage__figlabel">elapsed for stage</p>
+          <p class="stage__time">finished ${clockFmt.format(new Date(st.finishedT * 1000))}</p>`;
+      } else if (st.state === 'active') {
+        const pct = Math.min(100, Math.round((st.milesIn / st.milesTotal) * 100));
+        body = `
+          <p class="stage__figure">${hhmm(st.runningMs)}</p>
+          <p class="stage__figlabel">on this stage</p>
+          <p class="stage__time">${st.milesIn.toFixed(1)} of ${st.milesTotal.toFixed(1)} mi</p>
+          <div class="stage__bar"><span style="width:${pct}%"></span></div>`;
+      } else {
+        const eta = st.etaStartMs
+          ? clockFmt.format(new Date(st.etaStartMs))
+          : clockFmt.format(new Date(START_MS + s.startOffsetHours * 3600000));
+        body = `
+          <p class="stage__figure stage__figure--sm">${eta}</p>
+          <p class="stage__figlabel">${st.shifted ? 'projected start' : 'planned start'}</p>
+          <p class="stage__time">${hhmm(s.durationHours * 3600000)} estimated</p>`;
+      }
+
       li.innerHTML = `
         <p class="stage__n">${s.n}</p>
+        <p class="stage__status">${LABELS[st.state]}</p>
         <p class="stage__name">${s.name}</p>
         <p class="stage__leg">${s.from} → ${s.to}</p>
         <p class="stage__num">${s.miles} mi · ${s.gain.toLocaleString()}${s.gainEstimated ? '~' : ''} ft</p>
-        <p class="stage__time">${clockFmt.format(new Date(startMs))}</p>
+        ${body}
         ${s.note ? `<p class="stage__note">${s.note}</p>` : ''}
       `;
       list.appendChild(li);
@@ -761,10 +1101,13 @@
     try {
       const data = await readJson('data/track.json');
       const points = Array.isArray(data.points) ? data.points : [];
+      const fixes = points.filter((p) => p.positioned);
       consecutiveFailures = 0;
-      drawTrack(points.filter((p) => p.positioned));
+      drawTrack(fixes);
       renderStats(points, status);
+      renderRail(fixes);
       note('');
+      return;
     } catch (err) {
       consecutiveFailures++;
       // One failed fetch is a blip. Several in a row means the page is showing
@@ -775,17 +1118,18 @@
         $('map-empty').textContent = 'Track data unavailable. Retrying.';
       }
     }
-    renderRail();
+    renderRail([]);
   }
 
   function init() {
     $('race-title').textContent = CFG.title;
     $('race-subtitle').textContent = CFG.subtitle;
     $('meta-distance').textContent = `${CFG.totalMiles} mi`;
-    $('meta-start').textContent = clockFmt.format(new Date(START_MS));
+    $('meta-start').textContent = fullDateFmt.format(new Date(START_MS));
     document.title = `${CFG.title} · Live Track`;
 
     initMap();
+    buildLegend();
     loadCourses().then(refresh);
     refresh();
 

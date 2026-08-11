@@ -40,12 +40,31 @@ function makeSampler(idx) {
 }
 
 /**
- * Walks the course from mile 0, at a pace that slows on climbs and stops for
- * the two planned sleeps, emitting a fix every ten minutes.
+ * Walks the schedule rather than a constant pace: each stage is ridden across
+ * its own gun-to-finish window, and the breaks between them hold position at
+ * the stage finish, which is where he actually is — at home, asleep.
+ *
+ * `lagHours` runs the whole thing late, which is how the page's plan delta and
+ * its tolerance for being off-schedule get exercised.
  */
-function buildFixes(sampleAt, { hours, gapAtHour = null, gapMinutes = 0, endAgoMinutes = 8 }) {
+function scheduleMileAt(elapsedH, CFG, spans, lagHours = 0) {
+  const t = elapsedH - lagHours;
+  if (t <= 0) return 0;
+  let last = 0;
+  for (const s of CFG.stages) {
+    const span = spans.find((x) => x.stage === s.n);
+    if (!span) continue;
+    const a = s.startOffsetHours;
+    const b = a + s.durationHours;
+    if (t < a) return last; // in the break before this stage
+    if (t <= b) return span.startMile + ((t - a) / (b - a)) * (span.endMile - span.startMile);
+    last = span.endMile;
+  }
+  return last;
+}
+
+function buildFixes(sampleAt, { hours, gapAtHour = null, gapMinutes = 0, endAgoMinutes = 8, lagHours = 0, CFG, spans }) {
   const points = [];
-  let mile = 0;
   let id = 4000000;
 
   const totalSlots = Math.floor((hours * 60) / PING_MIN);
@@ -59,11 +78,7 @@ function buildFixes(sampleAt, { hours, gapAtHour = null, gapMinutes = 0, endAgoM
   for (let i = 0; i <= totalSlots; i++) {
     const tMs = firstMs + i * PING_MIN * 60000;
     const hourIn = (tMs - firstMs) / 3600000;
-
-    // A rest between stage 2 and 3, and again between 4 and 5.
-    const resting = (hourIn > 12.5 && hourIn < 17.5) || (hourIn > 34 && hourIn < 39);
-    const mph = resting ? 0 : 5.4 + jitter(i) * 1.6;
-    mile += (mph * PING_MIN) / 60;
+    const mile = scheduleMileAt(hourIn, CFG, spans, lagHours);
 
     if (gapAtHour !== null && hourIn > gapAtHour && hourIn < gapAtHour + gapMinutes / 60) continue;
 
@@ -107,6 +122,15 @@ async function main() {
   const sampleAt = makeSampler(idx);
   await mkdir(OUT, { recursive: true });
 
+  // The page's config is the single source of the schedule, so the fixtures
+  // read it rather than keeping a second copy that can drift.
+  const cfgSrc = await readFile('docs/config.js', 'utf8');
+  const win = {};
+  new Function('window', cfgSrc)(win);
+  const CFG = win.RACE_CONFIG;
+  const spans = idx.stageSpans;
+  const ride = (o) => buildFixes(sampleAt, { CFG, spans, ...o });
+
   const write = async (name, points, now, stOpts) => {
     await writeFile(`${OUT}/${name}.track.json`, JSON.stringify(archive(points), null, 2) + '\n');
     await writeFile(`${OUT}/${name}.status.json`, JSON.stringify(status(points, now, stOpts), null, 2) + '\n');
@@ -137,28 +161,28 @@ async function main() {
   await write('pre-start-checkin', checkin, START_MS - 10 * 3600000);
 
   // 2. Mid-race: through the first night, onto stage 3.
-  const mid = buildFixes(sampleAt, { hours: 22 });
+  const mid = ride({ hours: 22, lagHours: 0.8 });
   await write('mid-race', mid.points, mid.now);
 
   // 3. Ninety minutes of nothing in the middle — trees, canyon, or a device
   //    face-down in a pack.
-  const gap = buildFixes(sampleAt, { hours: 22, gapAtHour: 14, gapMinutes: 90 });
+  const gap = ride({ hours: 22, gapAtHour: 14, gapMinutes: 90, lagHours: 0.8 });
   await write('gap', gap.points, gap.now);
 
   // 4. Last fix 40 minutes ago. The dangerous one: is he stopped, or is the
   //    pipeline dead?
-  const stale = buildFixes(sampleAt, { hours: 22, endAgoMinutes: 40 });
+  const stale = ride({ hours: 22, endAgoMinutes: 40, lagHours: 0.8 });
   await write('stale', stale.points, stale.now);
 
   // 5. HELP, un-cancelled.
-  const help = buildFixes(sampleAt, { hours: 22 });
+  const help = ride({ hours: 22, lagHours: 0.8 });
   const last = help.points[help.points.length - 1];
   help.points.push({ ...last, id: '9999999', t: last.t + 120, type: 'HELP', text: 'Help. Send help.' });
   await write('help', help.points, help.now);
 
   // 6. The poller has stopped but the last fix is only 20 minutes old, so a
   //    page watching only fix age would look calm and be wrong.
-  const dead = buildFixes(sampleAt, { hours: 22, endAgoMinutes: 20 });
+  const dead = ride({ hours: 22, endAgoMinutes: 20, lagHours: 0.8 });
   await write('poller-dead', dead.points, dead.now, {
     agoMinutes: 75,
     ok: false,
@@ -167,11 +191,11 @@ async function main() {
 
   // 7. Parked mid-sleep. Fixes keep arriving from the same spot, which is the
   //    case most easily mistaken for a fault.
-  const stopped = buildFixes(sampleAt, { hours: 14 });
+  const stopped = ride({ hours: 16.5, lagHours: 0.5 });
   await write('stopped', stopped.points, stopped.now);
 
   // 8. Deep night on stage 4, for judging legibility at 4am.
-  const night = buildFixes(sampleAt, { hours: 31 });
+  const night = ride({ hours: 31, lagHours: 1.2 });
   await write('night', night.points, night.now);
 }
 

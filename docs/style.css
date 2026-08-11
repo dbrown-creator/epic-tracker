@@ -265,6 +265,84 @@ body::before {
 
 .is-stale .readout__value { color: var(--overprint); }
 
+/* ---------- Site nav ---------- */
+
+.sitenav {
+  display: flex;
+  gap: 2px;
+  margin-bottom: 18px;
+}
+.sitenav a {
+  padding: 9px 16px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  text-decoration: none;
+  background: var(--paper-deep);
+  border: 1px solid rgba(110, 74, 38, .28);
+  border-bottom: 0;
+}
+.sitenav a.is-current {
+  color: var(--ink);
+  background: var(--paper);
+  border-color: var(--contour-deep);
+}
+.sitenav a:hover { color: var(--ink); }
+
+/* ---------- Course layer control ---------- */
+
+.layers {
+  padding-bottom: 16px;
+  border-bottom: var(--rule);
+}
+.layers .readout__label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.layers__all {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  text-transform: none;
+  letter-spacing: 0;
+  cursor: pointer;
+}
+
+.layer {
+  display: grid;
+  grid-template-columns: auto 14px 1fr auto;
+  gap: 8px;
+  align-items: center;
+  padding: 3px 0;
+  font-size: 12px;
+  cursor: pointer;
+}
+.layer:hover .layer__name { color: var(--ink); }
+
+.layer input { margin: 0; accent-color: var(--contour-deep); }
+.layer__swatch {
+  width: 14px;
+  height: 4px;
+  border: 1px solid rgba(42, 38, 34, .35);
+}
+.layer__name {
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.layer__mi {
+  font-size: 11px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+/* An unchecked stage reads as absent from the map, not merely quieter. */
+.layer:has(input:not(:checked)) .layer__swatch { background: transparent !important; }
+.layer:has(input:not(:checked)) .layer__name { opacity: .45; }
+
 /* Behind plan is information, not an alarm — it uses the contour brown rather
    than the red overprint, which is reserved for staleness and HELP. */
 #plan.is-behind { color: var(--contour-deep); }
@@ -370,9 +448,59 @@ body::before {
   color: var(--water);
 }
 
-.stage.is-now { background: rgba(191, 59, 43, .07); }
-.stage.is-now .stage__n { color: var(--overprint); }
-.stage.is-done { opacity: .5; }
+/* Each box is keyed to its stage's trace colour, so the rail and the map read
+   as one thing: the purple line is the purple box. */
+.stage { border-top: 3px solid var(--stage-color, transparent); }
+.stage__n { color: var(--stage-color, var(--contour)); }
+
+.stage__status {
+  margin: 2px 0 0;
+  font-size: 9px;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.stage__figure {
+  margin: 10px 0 0;
+  font-family: var(--display);
+  font-size: 1.6rem;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.stage__figure--sm { font-size: 1.1rem; }
+.stage__figlabel {
+  margin: 3px 0 0;
+  font-size: 10px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* The stage he is on is the only one that gets tinted. */
+.stage.is-active { background: rgba(191, 59, 43, .07); }
+.stage.is-active .stage__figure { color: var(--overprint); }
+
+/* Finished stages recede but stay readable — the times are the record. */
+.stage.is-done .stage__name,
+.stage.is-done .stage__leg,
+.stage.is-done .stage__num { opacity: .6; }
+.stage.is-done .stage__n { opacity: .5; }
+
+.stage.is-todo .stage__figure { color: var(--contour-deep); }
+.stage.is-todo { opacity: .82; }
+
+.stage__bar {
+  margin-top: 8px;
+  height: 4px;
+  background: rgba(110, 74, 38, .18);
+}
+.stage__bar span {
+  display: block;
+  height: 100%;
+  background: var(--overprint);
+}
 
 /* ---------- Footer ---------- */
 
