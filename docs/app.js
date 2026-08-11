@@ -520,6 +520,20 @@
     }
     emphasiseStage(snap.onCourse && !snap.transfer ? snap.stage : null);
 
+    // Before the gun, any fix is him wandering around Breckenridge, and
+    // reporting it as a course position — "Transferring", a stage, a mileage —
+    // is confidently wrong. This is the state the page sits in for the whole
+    // day before the start, so it is the state most people will see first.
+    if (Date.now() < START_MS) {
+      where.textContent = 'Not started';
+      whereSub.textContent = `Starts ${clockFmt.format(new Date(START_MS))}`;
+      progress.textContent = '—';
+      progressSub.textContent = `of ${course.totalMiles.toFixed(0)} mi`;
+      renderPlan(null);
+      setStatusBar(ageText, 'Not started', '—', false);
+      return;
+    }
+
     if (!snap.onCourse) {
       where.textContent = 'Off course';
       whereSub.textContent = `${snap.offMiles.toFixed(1)} mi from the route`;

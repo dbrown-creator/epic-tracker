@@ -118,6 +118,24 @@ async function main() {
   // 1. Nothing has happened yet. Clock sits an hour before the start.
   await write('pre-start', [], START_MS - 3600000);
 
+  // 1b. What production actually looks like the day before: one OK check-in
+  //     from Breckenridge, hours before the gun. Snapping this to the course
+  //     would report a stage and a mileage that mean nothing yet.
+  const checkin = [
+    {
+      id: '2482689660',
+      t: Math.floor((START_MS - 11 * 3600000) / 1000),
+      iso: null,
+      lat: 39.48695,
+      lon: -106.03648,
+      type: 'OK',
+      text: 'Just checking in to say that I am OK and all is well',
+      battery: 'LOW',
+      positioned: true,
+    },
+  ];
+  await write('pre-start-checkin', checkin, START_MS - 10 * 3600000);
+
   // 2. Mid-race: through the first night, onto stage 3.
   const mid = buildFixes(sampleAt, { hours: 22 });
   await write('mid-race', mid.points, mid.now);
