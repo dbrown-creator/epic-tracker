@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mega Epic · Live Track</title>
+<meta name="description" content="Live satellite tracking for a solo, self-supported ride of the 217-mile Breck Epic course.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bitter:wght@500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<!-- Leaflet is vendored rather than pulled from a CDN. If unpkg is slow or
+     down at 3am there is no map at all, and this page has to work unattended
+     for 58 hours. Same version, no new dependency, one less runtime call. -->
+<link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="sheet">
+
+  <nav class="sitenav">
+    <a href="./">Home</a>
+    <a href="live.html" class="is-current">Live track</a>
+    <a href="schedule.html">Schedule</a>
+  </nav>
+
+  <header class="titleblock">
+    <div class="titleblock__main">
+      <p class="eyebrow">Individual time trial · Crewed by Lindy</p>
+      <h1 id="race-title">Mega Epic</h1>
+      <p class="subtitle" id="race-subtitle">Individual time trial · Breckenridge, Colorado</p>
+    </div>
+    <dl class="titleblock__meta">
+      <div><dt>Distance</dt><dd id="meta-distance">217 mi</dd></div>
+      <div><dt>Stages</dt><dd>6</dd></div>
+      <div><dt>Start</dt><dd id="meta-start">—</dd></div>
+      <div><dt>Source</dt><dd>SPOT Gen4</dd></div>
+    </dl>
+  </header>
+
+  <div id="alert" class="alert" hidden role="status"></div>
+  <div id="health" class="health" hidden role="status"></div>
+  <p id="notice" class="notice" hidden role="status"></p>
+
+  <!-- Phone-first summary. The whole point of the page is answering "where is
+       he and is he moving", and on a 390px screen the map alone pushes that
+       answer below the fold. -->
+  <div class="statusbar" id="statusbar" aria-hidden="true">
+    <div class="statusbar__cell">
+      <span class="statusbar__k">Last fix</span>
+      <span class="statusbar__v" id="sb-age">—</span>
+    </div>
+    <div class="statusbar__cell statusbar__cell--wide">
+      <span class="statusbar__k">Where</span>
+      <span class="statusbar__v" id="sb-where">—</span>
+    </div>
+    <div class="statusbar__cell">
+      <span class="statusbar__k">Course</span>
+      <span class="statusbar__v" id="sb-mile">—</span>
+    </div>
+  </div>
+
+  <main class="plate">
+
+    <section class="mapframe" aria-label="Live position map">
+      <div id="map"></div>
+      <div class="neatline" aria-hidden="true"></div>
+      <div class="basemap-toggle">
+        <button type="button" data-basemap="topo" class="is-active">Topo</button>
+        <button type="button" data-basemap="imagery">Satellite</button>
+      </div>
+      <p class="mapframe__empty" id="map-empty" hidden>Waiting on the first fix.</p>
+    </section>
+
+    <aside class="collar" aria-label="Tracking readouts">
+
+      <div class="readout readout--hero">
+        <p class="readout__label">Last fix</p>
+        <p class="readout__value" id="fix-age">—</p>
+        <p class="readout__sub" id="fix-time">No data yet</p>
+      </div>
+
+      <div class="pings">
+        <p class="readout__label">Pings, last two hours</p>
+        <div class="pings__row" id="ping-row" role="img" aria-label="Recent satellite fixes"></div>
+        <p class="readout__sub">One mark per expected 10-minute window</p>
+      </div>
+
+      <div class="layers">
+        <p class="readout__label">
+          Course
+          <label class="layers__all"><input type="checkbox" id="layers-all" checked> all</label>
+        </p>
+        <div id="layers"></div>
+      </div>
+
+      <div class="readout readout--where">
+        <p class="readout__label">Where</p>
+        <p class="readout__value readout__value--sm" id="where">—</p>
+        <p class="readout__sub" id="where-sub">No fix yet</p>
+      </div>
+
+      <div class="grid2">
+        <div class="readout">
+          <p class="readout__label">Elapsed</p>
+          <p class="readout__value" id="elapsed">—</p>
+          <p class="readout__sub" id="elapsed-sub">of 58 h target</p>
+        </div>
+        <div class="readout">
+          <p class="readout__label">Along course</p>
+          <p class="readout__value" id="progress">—</p>
+          <p class="readout__sub" id="progress-sub">of 216 mi</p>
+        </div>
+      </div>
+
+      <div class="readout">
+        <p class="readout__label">Against plan</p>
+        <p class="readout__value readout__value--sm" id="plan">—</p>
+        <p class="readout__sub" id="plan-sub">Not started</p>
+      </div>
+
+      <div class="readout">
+        <p class="readout__label">Next road access</p>
+        <p class="readout__value readout__value--sm" id="crew">—</p>
+        <p class="readout__sub" id="crew-sub">Where a vehicle could reach him</p>
+      </div>
+
+      <div class="grid2">
+        <div class="readout">
+          <p class="readout__label">Tracked</p>
+          <p class="readout__value readout__value--sm" id="distance">—</p>
+          <p class="readout__sub">straight lines between fixes</p>
+        </div>
+        <div class="readout">
+          <p class="readout__label">Position</p>
+          <p class="readout__value readout__value--sm" id="position">—</p>
+          <p class="readout__sub" id="fix-count">0 fixes on file</p>
+        </div>
+      </div>
+
+    </aside>
+  </main>
+
+  <section class="rail" aria-label="Planned schedule">
+    <h2 class="rail__head">Stages <span>completed times are real · upcoming are projected</span></h2>
+    <ol class="rail__list" id="stage-rail"></ol>
+  </section>
+
+  <footer class="margin-note">
+    <p>Six stage courses ridden end to end as one continuous effort, starting half an hour behind the grand depart. Not the official Mega Epic — an individual time trial of the same 217 miles, crewed by Lindy, with resupply at the house the course runs past.</p>
+    <p class="margin-note__credit">Positions from a SPOT Gen4 satellite messenger, polled every few minutes. Gaps are normal: the device needs sky, and the trees on Aqueduct are thick.</p>
+  </footer>
+
+</div>
+
+<script src="vendor/leaflet/leaflet.js"></script>
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

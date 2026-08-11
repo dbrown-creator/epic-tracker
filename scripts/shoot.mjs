@@ -43,7 +43,7 @@ async function main() {
 
   const server = createServer(async (req, res) => {
     const path = decodeURIComponent(req.url.split('?')[0]);
-    const file = join(PREVIEW, path === '/' ? 'index.html' : path);
+    const file = join(PREVIEW, path === '/' ? 'live.html' : path);
     try {
       const body = await readFile(file);
       res.writeHead(200, {

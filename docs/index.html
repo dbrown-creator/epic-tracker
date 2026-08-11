@@ -3,16 +3,16 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Mega Epic · Live Track</title>
-<meta name="description" content="Live satellite tracking for a solo, self-supported ride of the 217-mile Breck Epic course.">
+<title>David's Tracker · Breck Epic Mega Epic</title>
+<meta name="description" content="David Brown rides all six Breck Epic stage courses end to end as one continuous 216-mile individual time trial. Live satellite tracking from 9:00 AM Wednesday 12 August 2026.">
+
+<meta property="og:title" content="David's Tracker — the Mega Epic">
+<meta property="og:description" content="Six Breck Epic stage courses, 216 miles, one continuous push. Starts 9:00 AM Wednesday 12 August.">
+<meta property="og:type" content="website">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bitter:wght@500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<!-- Leaflet is vendored rather than pulled from a CDN. If unpkg is slow or
-     down at 3am there is no map at all, and this page has to work unattended
-     for 58 hours. Same version, no new dependency, one less runtime call. -->
-<link rel="stylesheet" href="vendor/leaflet/leaflet.css">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -20,141 +20,101 @@
 <div class="sheet">
 
   <nav class="sitenav">
-    <a href="./" class="is-current">Live track</a>
+    <a href="./" class="is-current">Home</a>
+    <a href="live.html">Live track</a>
     <a href="schedule.html">Schedule</a>
   </nav>
 
   <header class="titleblock">
     <div class="titleblock__main">
       <p class="eyebrow">Individual time trial · Crewed by Lindy</p>
-      <h1 id="race-title">Mega Epic</h1>
-      <p class="subtitle" id="race-subtitle">Individual time trial · Breckenridge, Colorado</p>
+      <h1>The Mega Epic</h1>
+      <p class="subtitle">All six Breck Epic stage courses, end to end, as one continuous ride</p>
     </div>
     <dl class="titleblock__meta">
-      <div><dt>Distance</dt><dd id="meta-distance">217 mi</dd></div>
+      <div><dt>Distance</dt><dd>216 mi</dd></div>
+      <div><dt>Climbing</dt><dd>34,805 ft</dd></div>
       <div><dt>Stages</dt><dd>6</dd></div>
-      <div><dt>Start</dt><dd id="meta-start">—</dd></div>
-      <div><dt>Source</dt><dd>SPOT Gen4</dd></div>
+      <div><dt>Target</dt><dd>58 h</dd></div>
     </dl>
   </header>
 
-  <div id="alert" class="alert" hidden role="status"></div>
-  <div id="health" class="health" hidden role="status"></div>
-  <p id="notice" class="notice" hidden role="status"></p>
+  <section class="hero">
+    <p class="hero__lede">
+      This is the home page for David Brown's ride of the Breck Epic Mega Epic
+      course. The individual time trial begins at <strong>9:00 AM on Wednesday,
+      12 August 2026</strong> from the <strong>Carter Park ice rink</strong> in
+      Breckenridge, Colorado.
+    </p>
+    <p class="hero__note">
+      The grand depart rolls out at 8:30 AM. David starts his solo effort half an
+      hour later, at 9:00, and rides all six stage courses back to back —
+      216 miles and 34,805 feet of climbing — without stopping the clock.
+    </p>
+    <p class="hero__cta">
+      <a class="button" href="live.html">Follow the live track →</a>
+      <span class="hero__ctasub">Position updates roughly every 10 minutes from a SPOT&nbsp;Gen4 satellite messenger</span>
+    </p>
+  </section>
 
-  <!-- Phone-first summary. The whole point of the page is answering "where is
-       he and is he moving", and on a 390px screen the map alone pushes that
-       answer below the fold. -->
-  <div class="statusbar" id="statusbar" aria-hidden="true">
-    <div class="statusbar__cell">
-      <span class="statusbar__k">Last fix</span>
-      <span class="statusbar__v" id="sb-age">—</span>
-    </div>
-    <div class="statusbar__cell statusbar__cell--wide">
-      <span class="statusbar__k">Where</span>
-      <span class="statusbar__v" id="sb-where">—</span>
-    </div>
-    <div class="statusbar__cell">
-      <span class="statusbar__k">Course</span>
-      <span class="statusbar__v" id="sb-mile">—</span>
-    </div>
-  </div>
+  <section class="mapcard" aria-label="The course">
+    <img src="course-map.svg" alt="All six Breck Epic stage courses drawn together around Breckenridge" width="900" height="700">
+    <p class="mapcard__cap">
+      Six stages, one colour each. Everything starts and finishes in Breckenridge —
+      stage 1 from the ice rink at Carter Park, stages 2 through 4 from Lower
+      Washington, stage 5 from Beaver Run, and stage 6 back at the ice rink.
+    </p>
+  </section>
 
-  <main class="plate">
-
-    <section class="mapframe" aria-label="Live position map">
-      <div id="map"></div>
-      <div class="neatline" aria-hidden="true"></div>
-      <div class="basemap-toggle">
-        <button type="button" data-basemap="topo" class="is-active">Topo</button>
-        <button type="button" data-basemap="imagery">Satellite</button>
-      </div>
-      <p class="mapframe__empty" id="map-empty" hidden>Waiting on the first fix.</p>
-    </section>
-
-    <aside class="collar" aria-label="Tracking readouts">
-
-      <div class="readout readout--hero">
-        <p class="readout__label">Last fix</p>
-        <p class="readout__value" id="fix-age">—</p>
-        <p class="readout__sub" id="fix-time">No data yet</p>
-      </div>
-
-      <div class="pings">
-        <p class="readout__label">Pings, last two hours</p>
-        <div class="pings__row" id="ping-row" role="img" aria-label="Recent satellite fixes"></div>
-        <p class="readout__sub">One mark per expected 10-minute window</p>
-      </div>
-
-      <div class="layers">
-        <p class="readout__label">
-          Course
-          <label class="layers__all"><input type="checkbox" id="layers-all" checked> all</label>
-        </p>
-        <div id="layers"></div>
-      </div>
-
-      <div class="readout readout--where">
-        <p class="readout__label">Where</p>
-        <p class="readout__value readout__value--sm" id="where">—</p>
-        <p class="readout__sub" id="where-sub">No fix yet</p>
-      </div>
-
-      <div class="grid2">
-        <div class="readout">
-          <p class="readout__label">Elapsed</p>
-          <p class="readout__value" id="elapsed">—</p>
-          <p class="readout__sub" id="elapsed-sub">of 58 h target</p>
-        </div>
-        <div class="readout">
-          <p class="readout__label">Along course</p>
-          <p class="readout__value" id="progress">—</p>
-          <p class="readout__sub" id="progress-sub">of 216 mi</p>
-        </div>
-      </div>
-
-      <div class="readout">
-        <p class="readout__label">Against plan</p>
-        <p class="readout__value readout__value--sm" id="plan">—</p>
-        <p class="readout__sub" id="plan-sub">Not started</p>
-      </div>
-
-      <div class="readout">
-        <p class="readout__label">Next road access</p>
-        <p class="readout__value readout__value--sm" id="crew">—</p>
-        <p class="readout__sub" id="crew-sub">Where a vehicle could reach him</p>
-      </div>
-
-      <div class="grid2">
-        <div class="readout">
-          <p class="readout__label">Tracked</p>
-          <p class="readout__value readout__value--sm" id="distance">—</p>
-          <p class="readout__sub">straight lines between fixes</p>
-        </div>
-        <div class="readout">
-          <p class="readout__label">Position</p>
-          <p class="readout__value readout__value--sm" id="position">—</p>
-          <p class="readout__sub" id="fix-count">0 fixes on file</p>
-        </div>
-      </div>
-
-    </aside>
-  </main>
-
-  <section class="rail" aria-label="Planned schedule">
-    <h2 class="rail__head">Stages <span>completed times are real · upcoming are projected</span></h2>
+  <section class="rail" aria-label="The six stages">
+    <h2 class="rail__head">The six stages <span>estimated times · gun to finish</span></h2>
     <ol class="rail__list" id="stage-rail"></ol>
   </section>
 
   <footer class="margin-note">
-    <p>Six stage courses ridden end to end as one continuous effort, starting half an hour behind the grand depart. Not the official Mega Epic — an individual time trial of the same 217 miles, crewed by Lindy, with resupply at the house the course runs past.</p>
-    <p class="margin-note__credit">Positions from a SPOT Gen4 satellite messenger, polled every few minutes. Gaps are normal: the device needs sky, and the trees on Aqueduct are thick.</p>
+    <p>Not the official Mega Epic — an individual time trial of the same six
+    courses, crewed by Lindy, with resupply at the house the course runs past.
+    Positions come from a SPOT Gen4 satellite messenger and are committed to a
+    public archive as they arrive.</p>
+    <p class="margin-note__credit">Course lines from the official Breck Epic 2026 route export.</p>
   </footer>
 
 </div>
 
-<script src="vendor/leaflet/leaflet.js"></script>
 <script src="config.js"></script>
-<script src="app.js"></script>
+<script>
+/* The landing page shares the tracker's config so the stage list, distances
+   and times can never drift from the live page. No fetching, no map, no dot —
+   this page has to render before anything else has loaded. */
+(function () {
+  var CFG = window.RACE_CONFIG;
+  var list = document.getElementById('stage-rail');
+  var hhmm = function (h) {
+    return Math.floor(h) + ':' + String(Math.round((h % 1) * 60)).padStart(2, '0');
+  };
+
+  var startMs = Date.parse(CFG.startLocal + 'Z');
+  var fmt = new Intl.DateTimeFormat('en-US', {
+    weekday: 'short', hour: 'numeric', minute: '2-digit', timeZone: 'UTC',
+  });
+
+  CFG.stages.forEach(function (s) {
+    var li = document.createElement('li');
+    li.className = 'stage is-todo';
+    li.style.setProperty('--stage-color', s.color);
+    li.innerHTML =
+      '<p class="stage__n">' + s.n + '</p>' +
+      '<p class="stage__name">' + s.name + '</p>' +
+      '<p class="stage__leg">' + s.from + ' &rarr; ' + s.to + '</p>' +
+      '<p class="stage__num">' + s.miles + ' mi &middot; ' + s.gain.toLocaleString() +
+        (s.gainEstimated ? '~' : '') + ' ft</p>' +
+      '<p class="stage__figure stage__figure--sm">' + hhmm(s.durationHours) + '</p>' +
+      '<p class="stage__figlabel">estimated</p>' +
+      '<p class="stage__time">starts +' + hhmm(s.startOffsetHours) + '</p>' +
+      (s.note ? '<p class="stage__note">' + s.note + '</p>' : '');
+    list.appendChild(li);
+  });
+})();
+</script>
 </body>
 </html>

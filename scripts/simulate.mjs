@@ -103,7 +103,7 @@ async function main() {
 
   // Inject the shim into the copy only. Kept as a template so SIM0 can be
   // stamped at request time.
-  const rawHtml = await readFile(join(SIM, 'index.html'), 'utf8');
+  const rawHtml = await readFile(join(SIM, 'live.html'), 'utf8');
   const htmlTemplate = rawHtml.replace(
     '<script src="app.js"></script>',
     clockShim(SPEED, REPEAT, (WALL_SECONDS + 5) * 1000) + '<script src="app.js"></script>'
@@ -175,7 +175,7 @@ async function main() {
       });
     }
 
-    if (path === '/' || path === '/index.html') {
+    if (path === '/' || path === '/live.html') {
       res.writeHead(200, { 'content-type': 'text/html', 'cache-control': 'no-store' });
       return res.end(htmlTemplate.replace('__SIM0__', String(Math.round(simNow()))));
     }

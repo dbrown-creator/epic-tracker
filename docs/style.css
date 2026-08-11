@@ -73,7 +73,10 @@ body::before {
   color: var(--contour);
 }
 
-#race-title {
+/* The tracker fills this by id; the landing page has a plain h1. Both are the
+   masthead and both want display type. */
+#race-title,
+.titleblock__main h1 {
   margin: 0;
   font-family: var(--display);
   font-weight: 700;
@@ -290,6 +293,84 @@ body::before {
   border-color: var(--contour-deep);
 }
 .sitenav a:hover { color: var(--ink); }
+
+/* ---------- Landing page ---------- */
+
+.hero {
+  margin-top: 26px;
+  padding: 26px 28px 28px;
+  border: var(--rule-heavy);
+  background: var(--paper-deep);
+}
+.hero__lede {
+  margin: 0;
+  font-family: var(--display);
+  font-size: 1.35rem;
+  line-height: 1.45;
+  text-wrap: pretty;
+}
+.hero__lede strong { color: var(--overprint); }
+.hero__note {
+  margin: 14px 0 0;
+  max-width: 62ch;
+  font-size: 13.5px;
+  line-height: 1.65;
+  color: var(--muted);
+}
+.hero__cta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+  margin: 22px 0 0;
+}
+.hero__ctasub {
+  font-size: 11.5px;
+  color: var(--muted);
+  max-width: 34ch;
+}
+
+.button {
+  display: inline-block;
+  padding: 13px 22px;
+  background: var(--overprint);
+  color: var(--paper);
+  font-family: var(--data);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  text-decoration: none;
+  border: 2px solid var(--overprint);
+}
+.button:hover { background: var(--paper); color: var(--overprint); }
+
+.mapcard {
+  margin-top: 26px;
+  padding: 14px 14px 0;
+  border: var(--rule-heavy);
+  background: var(--paper-deep);
+}
+.mapcard img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid rgba(110, 74, 38, .28);
+}
+.mapcard__cap {
+  margin: 0;
+  padding: 12px 4px 14px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--muted);
+  max-width: 78ch;
+}
+
+@media (max-width: 520px) {
+  .hero { padding: 20px 18px 22px; }
+  .hero__lede { font-size: 1.12rem; }
+  .button { width: 100%; text-align: center; }
+}
 
 /* ---------- Course layer control ---------- */
 
