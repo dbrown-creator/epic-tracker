@@ -5,53 +5,65 @@ window.RACE_CONFIG = {
   subtitle: 'Individual time trial · Breckenridge, Colorado',
   rider: 'Dave Brown',
 
-  // Start of the clock. Mountain Daylight Time is -06:00.
-  startTime: '2026-08-12T09:00:00-06:00',
+  // Local wall-clock start, plus the zone it is stated in. The offset is
+  // derived from the zone at that instant rather than written down, so this
+  // stays correct regardless of what the offset happens to be.
+  startLocal: '2026-08-12T09:00:00',
+  timeZone: 'America/Denver',
 
   targetHours: 58,
-  totalMiles: 217,
+
+  // Measured from the official route export, not estimated. The MEGA EPIC
+  // line is 216.0 mi; the six stage lines total 211.9, the balance being
+  // transfers between stage finishes and the next stage start.
+  totalMiles: 216.0,
 
   // Gen4 ping cadence, and how long silence goes before the page says so.
   pingIntervalMinutes: 10,
   staleAfterMinutes: 25,
 
+  // The poller writes a heartbeat every run. If it is older than this, the
+  // pipeline itself is suspect and the page says so rather than showing a
+  // confidently frozen dot.
+  pollerStaleAfterMinutes: 30,
+
   // How often the page re-reads track.json.
   refreshSeconds: 60,
 
-  // Drop a .gpx in docs/courses/ and name it here to draw the course underlay.
+  // miles/gain: measured from routes/breck-epic-2026.json where the export
+  // carries elevation (stages 1, 2, 5, 6). Stages 3 and 4 are [lon,lat] only,
+  // so their gain figures remain Dave's estimates and are marked as such.
   stages: [
     {
       n: 1,
       name: 'Pennsylvania Creek',
       from: 'Ice Rink',
       to: 'Carter Park',
-      miles: 35.7,
+      miles: 34.9,
       gain: 5700,
       startOffsetHours: 0,
       durationHours: 5.5,
-      gpx: 'stage1-pennsylvania-creek.gpx',
     },
     {
       n: 2,
       name: 'Colorado Trail',
       from: 'Lower Washington',
       to: 'B&B Trailhead',
-      miles: 41,
+      miles: 41.4,
       gain: 6900,
       startOffsetHours: 6.5,
       durationHours: 7.25,
-      gpx: 'stage2-colorado-trail.gpx',
     },
     {
       n: 3,
       name: 'Mount Guyot',
       from: 'Lower Washington',
       to: 'B&B Trailhead',
-      miles: 40.3,
+      miles: 38.9,
       gain: 6182,
+      gainEstimated: true,
       startOffsetHours: 18,
       durationHours: 7.5,
-      gpx: 'stage3-guyot.gpx',
       note: 'French Pass at sunrise',
     },
     {
@@ -59,33 +71,31 @@ window.RACE_CONFIG = {
       name: 'Aqueduct',
       from: 'Lower Washington',
       to: 'B&B Trailhead',
-      miles: 41,
+      miles: 41.5,
       gain: 7100,
+      gainEstimated: true,
       startOffsetHours: 26.75,
       durationHours: 7.5,
-      gpx: 'stage4-aqueduct.gpx',
     },
     {
       n: 5,
       name: 'Wheeler',
       from: 'Beaver Run',
       to: 'Peaks Trailhead',
-      miles: 24.6,
+      miles: 24.1,
       gain: 5227,
       startOffsetHours: 40,
       durationHours: 7.75,
-      gpx: 'stage5-wheeler.gpx',
     },
     {
       n: 6,
       name: 'Gold Dust',
       from: 'Ice Rink',
       to: 'Ice Rink',
-      miles: 30.2,
+      miles: 31.1,
       gain: 3740,
       startOffsetHours: 49,
       durationHours: 6.25,
-      gpx: 'stage6-gold-dust.gpx',
     },
   ],
 

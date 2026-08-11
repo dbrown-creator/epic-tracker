@@ -125,6 +125,29 @@ body::before {
   font-size: 14px;
 }
 
+/* Pipeline health. Deliberately not styled as an emergency: a stale poller
+   is a caveat on everything below it, not the same class of event as HELP. */
+
+.health {
+  margin-top: 18px;
+  padding: 10px 14px;
+  border: 1px solid var(--contour-deep);
+  border-left: 4px solid var(--contour);
+  background: rgba(162, 112, 63, .10);
+  color: var(--contour-deep);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.notice {
+  margin: 10px 0 0;
+  padding: 8px 12px;
+  border-left: 3px solid var(--muted);
+  background: rgba(122, 110, 93, .08);
+  color: var(--muted);
+  font-size: 12.5px;
+}
+
 /* ---------- Map plate + collar ---------- */
 
 .plate {
@@ -241,6 +264,16 @@ body::before {
 .readout--hero .readout__value { font-size: 2.6rem; }
 
 .is-stale .readout__value { color: var(--overprint); }
+
+/* "Where" carries the answer people actually came for — a place name beats
+   a coordinate pair — so it gets display type despite being prose. */
+.readout--where .readout__value {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 1.32rem;
+  line-height: 1.15;
+  text-wrap: balance;
+}
 
 .grid2 {
   display: grid;
@@ -380,9 +413,48 @@ body::before {
 
 /* ---------- Responsive ---------- */
 
+/* Only ever shown on narrow screens — on desktop the collar already carries
+   this and a second copy would just be noise. */
+.statusbar { display: none; }
+
 @media (max-width: 900px) {
   .plate { grid-template-columns: 1fr; }
-  .mapframe { min-height: 62vh; }
+  /* Smaller than 62vh: the map plus this strip has to leave the readouts
+     reachable without scrolling on a 390x844 phone. */
+  .mapframe { min-height: 46vh; }
+
+  .statusbar {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 14px;
+    align-items: baseline;
+    margin-top: 18px;
+    padding: 10px 14px;
+    border: var(--rule-heavy);
+    border-bottom: 0;
+    background: var(--paper-deep);
+  }
+  .statusbar__cell { min-width: 0; }
+  .statusbar__cell--wide { text-align: center; }
+  .statusbar__k {
+    display: block;
+    font-size: 9px;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .statusbar__v {
+    display: block;
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 1.05rem;
+    line-height: 1.2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .statusbar.is-stale .statusbar__v { color: var(--overprint); }
+  .plate { margin-top: 0; }
   .collar { border-left: 0; border-top: var(--rule-heavy); }
   .rail__list { grid-template-columns: repeat(2, 1fr); }
   .stage { border-left: var(--rule); border-top: var(--rule); }

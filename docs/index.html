@@ -31,6 +31,26 @@
   </header>
 
   <div id="alert" class="alert" hidden role="status"></div>
+  <div id="health" class="health" hidden role="status"></div>
+  <p id="notice" class="notice" hidden role="status"></p>
+
+  <!-- Phone-first summary. The whole point of the page is answering "where is
+       he and is he moving", and on a 390px screen the map alone pushes that
+       answer below the fold. -->
+  <div class="statusbar" id="statusbar" aria-hidden="true">
+    <div class="statusbar__cell">
+      <span class="statusbar__k">Last fix</span>
+      <span class="statusbar__v" id="sb-age">—</span>
+    </div>
+    <div class="statusbar__cell statusbar__cell--wide">
+      <span class="statusbar__k">Where</span>
+      <span class="statusbar__v" id="sb-where">—</span>
+    </div>
+    <div class="statusbar__cell">
+      <span class="statusbar__k">Course</span>
+      <span class="statusbar__v" id="sb-mile">—</span>
+    </div>
+  </div>
 
   <main class="plate">
 
@@ -58,6 +78,12 @@
         <p class="readout__sub">One mark per expected 10-minute window</p>
       </div>
 
+      <div class="readout readout--where">
+        <p class="readout__label">Where</p>
+        <p class="readout__value readout__value--sm" id="where">—</p>
+        <p class="readout__sub" id="where-sub">No fix yet</p>
+      </div>
+
       <div class="grid2">
         <div class="readout">
           <p class="readout__label">Elapsed</p>
@@ -65,16 +91,29 @@
           <p class="readout__sub" id="elapsed-sub">of 58 h target</p>
         </div>
         <div class="readout">
-          <p class="readout__label">Tracked</p>
-          <p class="readout__value" id="distance">—</p>
-          <p class="readout__sub">straight lines between fixes</p>
+          <p class="readout__label">Along course</p>
+          <p class="readout__value" id="progress">—</p>
+          <p class="readout__sub" id="progress-sub">of 216 mi</p>
         </div>
       </div>
 
       <div class="readout">
-        <p class="readout__label">Position</p>
-        <p class="readout__value readout__value--sm" id="position">—</p>
-        <p class="readout__sub" id="fix-count">0 fixes on file</p>
+        <p class="readout__label">Next road access</p>
+        <p class="readout__value readout__value--sm" id="crew">—</p>
+        <p class="readout__sub" id="crew-sub">Where a vehicle could reach him</p>
+      </div>
+
+      <div class="grid2">
+        <div class="readout">
+          <p class="readout__label">Tracked</p>
+          <p class="readout__value readout__value--sm" id="distance">—</p>
+          <p class="readout__sub">straight lines between fixes</p>
+        </div>
+        <div class="readout">
+          <p class="readout__label">Position</p>
+          <p class="readout__value readout__value--sm" id="position">—</p>
+          <p class="readout__sub" id="fix-count">0 fixes on file</p>
+        </div>
       </div>
 
     </aside>

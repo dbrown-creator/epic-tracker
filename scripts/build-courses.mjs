@@ -325,6 +325,24 @@ async function main() {
     const folder = folderOf(f);
     const stage = STAGE_ORDER.find(([, k]) => folder.includes(k))?.[0] ?? null;
     const [lon, lat] = f.geometry.coordinates;
+
+    // Mileage is resolved here, inside the marker's own stage, rather than in
+    // the browser. Snapping globally puts a stage 1 water point at mile 113
+    // because the course revisits the same ground, which then surfaces as a
+    // crew intercept a hundred miles from where it actually is.
+    const span = rawSpans.find((s) => s.stage === stage);
+    const lo = span ? span.from : 0;
+    const hi = span ? span.to : megaRaw.length - 1;
+    let bestI = lo;
+    let bestD = Infinity;
+    for (let i = lo; i <= hi; i++) {
+      const d = (megaRaw[i][0] - lon) ** 2 + (megaRaw[i][1] - lat) ** 2;
+      if (d < bestD) {
+        bestD = d;
+        bestI = i;
+      }
+    }
+
     markers.push({
       type: 'Feature',
       properties: {
@@ -332,6 +350,8 @@ async function main() {
         kind,
         climb: kind === 'landmark' && isClimb(title),
         stage,
+        mile: Number(megaCum[bestI].toFixed(2)),
+        offMiles: Number((Math.sqrt(bestD) * 69).toFixed(2)),
       },
       geometry: { type: 'Point', coordinates: [round(lon), round(lat)] },
     });
