@@ -197,6 +197,7 @@
   // Snapping is the expensive part of this page, so each fix is snapped once
   // and remembered. Over 58 hours that is a few hundred entries.
   const mileCache = new Map();
+  let maxMileSeen = 0;
 
   /**
    * Which stage the schedule says he is on at a given elapsed time, and
@@ -343,6 +344,15 @@
    * back on itself — cannot un-finish a stage that was already completed.
    */
   /** Highest stage number confirmed reached, used as a ratchet. */
+  /** Mileage of the most recent fix the walk has already resolved. */
+  function previousMile(fixes) {
+    for (let i = fixes.length - 1; i >= 0; i--) {
+      const r = mileCache.get(fixes[i].id);
+      if (r && r.mile != null) return r.mile;
+    }
+    return null;
+  }
+
   function furthestStage(fixes) {
     let best = 0;
     for (const f of fixes) {
@@ -414,11 +424,11 @@
           durationMs: Math.max(0, (finishedT - startedT) * 1000),
         };
       }
-      // If the schedule has him in the break that follows this stage, and he
-      // has covered its distance, the stage is finished — he is at home, not
-      // still riding it. Without this it stays "in progress" all through a
-      // five-hour sleep.
-      if (current === s.n && rec && nowSched.state === 'break' && nowSched.afterStage === s.n && rec.endT) {
+      // Done means he covered the stage's distance, full stop. Keying this off
+      // "a later stage has been seen" instead makes a stage un-finish at every
+      // transition: the schedule moves on before the first fix resolves to the
+      // next stage, and for those minutes nothing is past it.
+      if (rec && rec.endT) {
         return {
           stage: s,
           span,
@@ -428,7 +438,7 @@
           durationMs: Math.max(0, (rec.endT - startedT) * 1000),
         };
       }
-      if (current === s.n && rec) {
+      if (current >= s.n && rec) {
         return {
           stage: s,
           span,
@@ -848,8 +858,13 @@
     }
 
     if (snap.onCourse) {
-      progress.textContent = `${snap.mile.toFixed(1)} mi`;
-      const pct = Math.round((snap.mile / course.totalMiles) * 100);
+      // Gold Dust finishes back at the Ice Rink and the course runs close to
+      // itself for the last few miles, so the snap can wobble by a mile there.
+      // The stages are ridden in sequence, so reported progress only advances.
+      // A genuine detour still shows, as "Off course".
+      maxMileSeen = Math.max(maxMileSeen, snap.mile);
+      progress.textContent = `${maxMileSeen.toFixed(1)} mi`;
+      const pct = Math.round((maxMileSeen / course.totalMiles) * 100);
       progressSub.textContent = `of ${course.totalMiles.toFixed(0)} mi · ${pct}%`;
     } else {
       progress.textContent = '—';
@@ -1005,8 +1020,12 @@
 
     renderPings(fixes, now);
     const elapsedH = (now - START_MS) / 3600000;
+    // The headline position must be resolved the same way the walk resolves
+    // every other fix — continuity included. Without the previous mileage it
+    // can pick a duplicate of the same place forty miles up the course, and
+    // the "along course" figure jumps backwards.
     renderCourseReadout(
-      resolveFix(last.lat, last.lon, elapsedH, furthestStage(fixes)),
+      resolveFix(last.lat, last.lon, elapsedH, furthestStage(fixes), previousMile(fixes)),
       fixes,
       ago(age),
       age > STALE_MS
@@ -1104,8 +1123,10 @@
       const fixes = points.filter((p) => p.positioned);
       consecutiveFailures = 0;
       drawTrack(fixes);
-      renderStats(points, status);
+      // The rail walks and caches every fix, so run it first: the headline
+      // readout then has a resolved previous mileage to be continuous with.
       renderRail(fixes);
+      renderStats(points, status);
       note('');
       return;
     } catch (err) {

@@ -47,8 +47,10 @@ function makeSampler(idx) {
  * `lagHours` runs the whole thing late, which is how the page's plan delta and
  * its tolerance for being off-schedule get exercised.
  */
-function scheduleMileAt(elapsedH, CFG, spans, lagHours = 0) {
-  const t = elapsedH - lagHours;
+function scheduleMileAt(elapsedH, CFG, spans, lagHours = 0, driftPerHour = 0) {
+  // Drift accumulates, which is what actually happens: nobody is uniformly
+  // half an hour late, they lose a few minutes an hour and it compounds.
+  const t = elapsedH - (lagHours + driftPerHour * elapsedH);
   if (t <= 0) return 0;
   let last = 0;
   for (const s of CFG.stages) {
@@ -63,7 +65,7 @@ function scheduleMileAt(elapsedH, CFG, spans, lagHours = 0) {
   return last;
 }
 
-function buildFixes(sampleAt, { hours, gapAtHour = null, gapMinutes = 0, endAgoMinutes = 8, lagHours = 0, CFG, spans }) {
+function buildFixes(sampleAt, { hours, gapAtHour = null, gapMinutes = 0, endAgoMinutes = 8, lagHours = 0, driftPerHour = 0, CFG, spans }) {
   const points = [];
   let id = 4000000;
 
@@ -78,7 +80,7 @@ function buildFixes(sampleAt, { hours, gapAtHour = null, gapMinutes = 0, endAgoM
   for (let i = 0; i <= totalSlots; i++) {
     const tMs = firstMs + i * PING_MIN * 60000;
     const hourIn = (tMs - firstMs) / 3600000;
-    const mile = scheduleMileAt(hourIn, CFG, spans, lagHours);
+    const mile = scheduleMileAt(hourIn, CFG, spans, lagHours, driftPerHour);
 
     if (gapAtHour !== null && hourIn > gapAtHour && hourIn < gapAtHour + gapMinutes / 60) continue;
 
@@ -194,7 +196,13 @@ async function main() {
   const stopped = ride({ hours: 16.5, lagHours: 0.5 });
   await write('stopped', stopped.points, stopped.now);
 
-  // 8. Deep night on stage 4, for judging legibility at 4am.
+  // 8. The whole race, for the replay simulator. Drifts steadily later, the
+  //     way a long effort actually goes, and loses the tracker for a while
+  //     under the trees on Aqueduct.
+  const full = ride({ hours: 57.5, lagHours: 0.2, driftPerHour: 0.012, gapAtHour: 31, gapMinutes: 75 });
+  await write('full-race', full.points, full.now);
+
+  // 9. Deep night on stage 4, for judging legibility at 4am.
   const night = ride({ hours: 31, lagHours: 1.2 });
   await write('night', night.points, night.now);
 }
