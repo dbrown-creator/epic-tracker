@@ -15,16 +15,22 @@ instead of *39.45, -105.91*.
 1. **Your tracker battery reported `LOW`** on last night's check-in
    (04:19 UTC, 22:19 MDT). Fresh lithium AAAs before the start. No amount of
    this work survives the device dying at hour 20.
-2. **The scheduled workflow has not fired once.** In the hour after it was
-   pushed it produced zero scheduled runs — only the manual one I triggered.
-   The workflow is `active` and the manual run works, so this is GitHub's
-   scheduler being best-effort, exactly as the README warns. **Do not rely on
-   the cron alone.** Run the fallback loop from a machine that stays awake
-   (`scripts/fallback-poll.sh`).
-3. **The commit half of the chain is still unproven.** The Action fetched and
-   ran green, but your feed has had no new fix since last night, so it has
-   never actually committed and pushed. Press the OK button on the Gen4 and
-   it will prove itself within ten minutes.
+2. **The cron is running roughly hourly, not every ten minutes.** Measured
+   scheduled runs: 15:44, 16:41, 17:44, 18:40 — four in the five hours since
+   the workflow went live, against about thirty expected. The workflow is
+   `active`, each run succeeds, and the bot commits correctly. GitHub is simply
+   throttling the schedule.
+
+   This matters more than it sounds. Fix age on the page is measured from the
+   SPOT fix time, not the poll time, so an hourly poll means the newest fix on
+   the page can be up to an hour old even when everything is healthy — and the
+   page will sit in its stale state (>25 min) almost permanently. **Treat
+   `scripts/fallback-poll.sh` as the primary poller and the Action as the
+   backstop, not the other way round.**
+3. **The chain is fully verified and tagged `v1-working`.** The commit half
+   proved itself at 15:44Z when the bot pushed `b0f19a7` on a scheduled run.
+   Your feed has still had no new *position* fix since last night, so a real
+   moving track has not yet flowed through end to end.
 
 **What I'd do next**, in order: watch a real bot commit land and tag
 `v1-working`; night/dark mode for the 4am-in-bed case, which the design
@@ -163,15 +169,14 @@ and 390px. Fixtures are gitignored so they can never be mistaken for history.
 
 ## Assumptions
 
-**The Gen4 is on 10-minute tracking, not 5.** *Matters a lot if wrong.* The
-ping meter's twelve ticks are one per expected 10-minute window over two hours.
-If you're actually on 5-minute tracking the meter reads as 50% packet loss all
-race, and `staleAfterMinutes: 25` is too lenient by half.
+**~~The Gen4 is on 10-minute tracking, not 5.~~ Confirmed by Dave.** The ping
+meter's twelve ticks and `staleAfterMinutes: 25` stand as built.
 
-**The last fix arriving is the only liveness signal that matters to viewers.**
-*Matters moderately.* I've assumed nobody wants a "moving / stopped" verdict
-beyond fix age and the ping meter. Stop and sleep detection from clustered
-fixes is in your P2 list and I have not built it.
+**A stop is fixes clustering within 0.12 miles for more than two ping
+windows.** *Matters moderately.* Tight enough to ignore GPS scatter, loose
+enough to cover moving around a campsite. If it's too tight you'll see
+"stopped" flicker on and off while he's faffing at a resupply; too loose and a
+slow hike-a-bike reads as stopped.
 
 **Simplification at 7 m is invisible at usable zooms.** *Matters little.* At
 maximum topo zoom (16) a 7 m deviation is roughly 2 px. I checked the rendered
@@ -204,24 +209,22 @@ signal at a trailhead gets nothing.
 
 ## Open questions for Dave
 
-1. **Is the Gen4 on 10-minute or 5-minute tracking?** Everything about the ping
-   meter and staleness thresholds keys off this.
-2. **The scheduled workflow has not fired once in an hour — do you want me to
-   set up a second independent trigger,** or will you run the fallback loop on
-   a machine at home?
-3. **Do you want night/dark mode?** People will look at this at 4am in bed and
-   the current sheet is a bright buff paper. I'd do it as a
-   `prefers-color-scheme` variant of the quadrangle palette, not a different
-   design.
-4. **Elevation profile for four of six stages, or none at all?** A profile that
+1. **What machine will run `scripts/fallback-poll.sh` for 58 hours?** Given the
+   cron is effectively hourly, this is now the primary poller and it needs a
+   host that will not sleep. This is the one that actually matters.
+2. **Given the cron's real cadence, should `staleAfterMinutes` go up?** At 25
+   minutes the page will show stale nearly always if the Action is the only
+   poller. If the fallback loop is running at 10 minutes, leave it at 25.
+3. **Elevation profile for four of six stages, or none at all?** A profile that
    silently omits Guyot and Aqueduct may be worse than no profile.
-5. **Should the page show a "moving / stopped" verdict** derived from clustered
-   fixes, or is fix age plus the ping meter enough?
-6. **`config.js` gain figures for stages 3 and 4 are your estimates** and are
+4. **`config.js` gain figures for stages 3 and 4 are your estimates** and are
    marked with a `~` on the page. Do you want them shown at all, or dropped
    until they can be measured?
-7. **Is 0.5 miles the right "off course" threshold**, or would you rather it
+5. **Is 0.5 miles the right "off course" threshold**, or would you rather it
    never says off-course and just always reports the nearest mileage?
-8. **Do you want Leaflet and the fonts vendored into the repo?** Right now a
-   unpkg or Google Fonts outage degrades the page. Vendoring is zero new
-   dependencies and removes two third-party runtime calls.
+6. **Google Fonts is still a third-party runtime call.** Leaflet is now
+   vendored; fonts are not, because they fail gracefully to Georgia and a
+   system mono. Vendor those too?
+
+Deferred at your request until the functional work is done: **night/dark mode**
+and any other design refinement.
