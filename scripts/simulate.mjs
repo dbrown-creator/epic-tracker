@@ -41,6 +41,7 @@ const FROM_HOUR = Number(arg('from', -1)); // an hour before the gun by default
 const PORT = Number(arg('port', 8099));
 const CHECK = !!arg('check', false);
 const RACE_HOURS = Number(arg('hours', 58));
+const REPEAT = !!arg('repeat', false);
 
 const outage = String(arg('outage', '') || '')
   .split(',')
@@ -60,7 +61,7 @@ const TYPES = {
 };
 
 /** Injected between config.js and app.js. Never ships. */
-function clockShim(speed) {
+function clockShim(speed, repeat, cycleMs) {
   // SIM0 is stamped per request with the server's current simulated time, so
   // the page inherits the clock rather than starting its own. Getting this
   // wrong desynchronises the browser from the data by however long the browser
@@ -84,6 +85,9 @@ function clockShim(speed) {
   // far more often to keep up with a clock running ${Math.round(speed)}x.
   if (window.RACE_CONFIG) window.RACE_CONFIG.refreshSeconds = 0.25;
   window.__SIM = { now: nowSim, speed: SPEED, start: SIM0 };
+  // Reload at the end of a cycle so the page picks up a fresh SIM0 and the
+  // replay starts over in sync with the server.
+  if (${repeat}) setTimeout(function () { location.reload(); }, ${cycleMs});
 })();
 </script>
 `;
@@ -102,12 +106,19 @@ async function main() {
   const rawHtml = await readFile(join(SIM, 'index.html'), 'utf8');
   const htmlTemplate = rawHtml.replace(
     '<script src="app.js"></script>',
-    clockShim(SPEED) + '<script src="app.js"></script>'
+    clockShim(SPEED, REPEAT, (WALL_SECONDS + 5) * 1000) + '<script src="app.js"></script>'
   );
 
   const simStart = START_MS + FROM_HOUR * 3600000;
   const realStart = Date.now();
-  const simNow = () => simStart + (Date.now() - realStart) * SPEED;
+  // With --repeat the replay cycles, holding on the finish for a few seconds
+  // so the end state is readable before it starts over.
+  const CYCLE_MS = (WALL_SECONDS + 5) * 1000;
+  const simNow = () => {
+    let e = Date.now() - realStart;
+    if (REPEAT) e = e % CYCLE_MS;
+    return simStart + Math.min(e, WALL_SECONDS * 1000) * SPEED;
+  };
   const raceHour = () => (simNow() - START_MS) / 3600000;
 
   // Fixed at the first fix past the HELP hour, so it has one id, one time and

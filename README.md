@@ -54,6 +54,43 @@ SPOT_FEED_ID=xxxx node scripts/poll.mjs
 **6. Add the course lines.** Export GPX from your Strava recon rides into
 `docs/courses/` — see the README in that folder for filenames.
 
+## Watching a whole race before it happens
+
+```bash
+npm run sim
+```
+
+Replays all 57 hours through the real page in 60 seconds, then loops, at
+<http://localhost:8099/>. Ctrl-C to stop. The page itself is not modified — a
+copy is served with one script injected that speeds the clock up, so the
+snapping, stage detection, plan delta and ping meter all run exactly as they
+will on the day.
+
+```bash
+npm run sim:check     # no browser: assert invariants as it runs
+```
+
+`--check` samples the page several times a second and fails on the things that
+would actually mislead a reader: progress going backwards, a finished stage
+un-finishing, stages out of order, two stages active at once.
+
+Faults can be scripted, in race-time hours:
+
+```bash
+node scripts/simulate.mjs --outage 31,1.5   # poller dies for 90 min at hour 31
+node scripts/simulate.mjs --help 40         # HELP message at hour 40
+node scripts/simulate.mjs --from 18         # start partway in
+node scripts/simulate.mjs --seconds 180     # slower, easier to read
+```
+
+Other checks:
+
+```bash
+npm test        # poller against a mock feed: all three SPOT quirks, plus
+                # malformed bodies, 429s, mid-pagination 500s, timeouts
+npm run shots   # render nine page states at desktop and 390px into shots/
+```
+
 ## Race-day caveat
 
 GitHub's scheduled workflows have a 5-minute floor and are explicitly

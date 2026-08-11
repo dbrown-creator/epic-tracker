@@ -7,7 +7,13 @@
     "doc": "docs"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "sim": "node scripts/simulate.mjs --seconds 60 --repeat --outage 31,1.5",
+    "sim:check": "node scripts/simulate.mjs --check --seconds 60 --outage 31,1.5 --help 40",
+    "test": "node scripts/test-poll.mjs",
+    "shots": "node scripts/make-fixtures.mjs && node scripts/shoot.mjs",
+    "fixtures": "node scripts/make-fixtures.mjs",
+    "courses": "node scripts/build-courses.mjs",
+    "poll": "node scripts/poll.mjs"
   },
   "repository": {
     "type": "git",
