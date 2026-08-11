@@ -345,6 +345,15 @@ body::before {
 }
 .button:hover { background: var(--paper); color: var(--overprint); }
 
+/* Reads as "not yet", not as "broken": muted, dashed, and not clickable. */
+.button.is-disabled {
+  background: transparent;
+  color: var(--muted);
+  border: 2px dashed rgba(110, 74, 38, .45);
+  cursor: default;
+}
+.button.is-disabled:hover { background: transparent; color: var(--muted); }
+
 .mapcard {
   margin-top: 26px;
   padding: 14px 14px 0;
