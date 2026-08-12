@@ -13,7 +13,9 @@
     "shots": "node scripts/make-fixtures.mjs && node scripts/shoot.mjs",
     "fixtures": "node scripts/make-fixtures.mjs",
     "courses": "node scripts/build-courses.mjs",
-    "poll": "node scripts/poll.mjs"
+    "poll": "node scripts/poll.mjs",
+    "capture": "node scripts/capture.mjs",
+    "capture:loop": "node scripts/capture.mjs --loop 600"
   },
   "repository": {
     "type": "git",
