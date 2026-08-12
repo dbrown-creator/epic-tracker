@@ -1,0 +1,116 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Training — David's Tracker</title><style>
+:root{--ink:#15171a;--mut:#6b7280;--line:#e4e7ea;--bg:#fcfcfb;
+--ride:#2f6f4f;--ride-bg:#e9f2ed;--stop:#b0651a;--stop-bg:#fbecd8;
+--sleep:#3b5aa6;--sleep-bg:#e6ecfa;--move:#9aa0a6;--move-bg:#f0f1f3;
+--red:#b3261e;--good:#1e6b47;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Helvetica,Arial,sans-serif}
+.wrap{max-width:930px;margin:0 auto;padding:44px 24px 100px}
+header{border-bottom:2px solid var(--ink);padding-bottom:16px}
+h1{font-size:31px;margin:0 0 6px;letter-spacing:-.022em}
+.sub{color:var(--mut);font-size:13.5px}
+.meta{display:flex;flex-wrap:wrap;margin:22px 0;border:1px solid var(--line);
+border-radius:10px;background:#fff;overflow:hidden}
+.meta>div{flex:1 1 140px;padding:13px 16px;border-right:1px solid var(--line)}
+.meta>div:last-child{border-right:0}
+.k{color:var(--mut);text-transform:uppercase;letter-spacing:.08em;font-size:10px;margin-bottom:3px}
+.v{font-weight:650;font-size:18px;font-variant-numeric:tabular-nums}
+.v.good{color:var(--good)}
+.v.xl{font-size:23px;letter-spacing:-.02em}
+.meta>div.big{flex:1 1 190px;background:#fff}
+.vs{font-size:11.5px;color:var(--mut);margin-top:3px}
+.v small{font-weight:500;font-size:11.5px;color:var(--mut);display:block;margin-top:2px}
+.box{border:1px solid var(--line);border-radius:10px;background:#fff;padding:18px 20px;margin-bottom:20px}
+.box h2{margin:0 0 8px;font-size:15px}
+.box p{margin:0;font-size:13.5px;color:#43484d}.box p+p{margin-top:8px}
+.box.win{background:#eef6f1;border-color:#cfe3d8;border-left:4px solid var(--good)}
+.box.win h2{color:#17543a}.box.win p{color:#254a3a}
+.routine{display:flex;gap:9px;flex-wrap:wrap;margin-top:10px}
+.routine span{font-size:11.5px;background:var(--stop-bg);color:#7a4512;border:1px solid #e8cba4;
+border-radius:20px;padding:3px 11px;font-weight:600}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:11.5px;color:var(--mut);margin:26px 0 8px}
+.legend i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.chart{position:relative;margin-left:92px;border-top:1px solid var(--line);height:3360px}
+.night{position:absolute;left:-92px;right:0;background:#e9ebf0}
+.grid{position:absolute;left:0;right:0;height:1px;background:rgba(0,0,0,.05)}
+.grid.major{background:rgba(0,0,0,.13)}
+.tick{position:absolute;left:-92px;width:80px;text-align:right;line-height:1.12}
+.tick .dy{display:block;font-size:9px;font-weight:800;letter-spacing:.12em;color:#15171a}
+.tick .el{display:block;font-size:14px;font-weight:650;color:#40454b;font-variant-numeric:tabular-nums}
+.tick .ck{display:block;font-size:9px;color:#b9bec3;font-variant-numeric:tabular-nums}
+.tick.tickmaj .el{color:var(--ink);font-size:15px;font-weight:750}
+.tick.tickstart .el{color:var(--good)}
+.tick.tickstart .ck{color:var(--good);font-weight:700;letter-spacing:.08em}
+.grid.midnight{background:rgba(0,0,0,.3)}
+.blk{position:absolute;left:10px;right:0;border-radius:7px;padding:7px 13px;overflow:hidden;
+border:1px solid var(--line);border-left-width:4px}
+.bt{font-size:14.5px;font-weight:650;letter-spacing:-.012em;line-height:1.25}
+.bd{font-size:12px;color:#4c5257;margin-top:2px;line-height:1.32}
+.ba{font-size:11px;color:var(--mut);margin-top:4px;font-variant-numeric:tabular-nums}
+.bc{float:right;text-align:right;margin-left:14px;line-height:1.2}
+.bc b{display:block;font-size:19px;font-weight:700;color:#15171a;font-variant-numeric:tabular-nums;
+letter-spacing:-.02em;line-height:1.05}
+.bc .rng{display:block;font-size:11px;color:#7c8288;font-weight:600;font-variant-numeric:tabular-nums;
+margin-top:2px;white-space:nowrap}
+.blk.small{padding:5px 13px}.blk.small .bt{font-size:13px}.blk.small .bd{font-size:11px}
+.blk.small .bc b{font-size:16px}.blk.small .bc .rng{font-size:10.5px}
+.blk.tiny{padding:2px 13px;display:flex;align-items:center}
+.blk.tiny .bt{font-size:11px;font-weight:600;color:#5d6369}
+.blk.tiny .bc b{font-size:12px;display:inline}
+.blk.tiny .bc .rng{display:inline;font-size:10px;margin-left:7px}
+.ride{border-left-color:var(--ride);background:var(--ride-bg)}
+.stop{border-left-color:var(--stop);background:var(--stop-bg)}.stop .bt{color:#7a4512}
+.sleep{border-left-color:var(--sleep);background:var(--sleep-bg)}.sleep .bt{color:#22366b}
+.move{border-left-color:var(--move);background:var(--move-bg)}
+.decision{border:2px dashed var(--sleep);border-left-width:4px}
+.grp{position:absolute;left:0;width:4px;border-radius:3px;background:var(--ride);opacity:.55}
+.bank{position:absolute;left:-92px;right:0;background:repeating-linear-gradient(45deg,
+rgba(30,107,71,.07) 0 8px,rgba(30,107,71,.14) 8px 16px);pointer-events:none}
+.mark{position:absolute;left:-92px;right:0;height:0;border-top:2px dashed var(--good);z-index:5}
+.mark span{position:absolute;right:0;top:-9px;background:var(--good);color:#fff;font-size:10px;
+font-weight:700;letter-spacing:.05em;padding:2px 8px;border-radius:4px;text-transform:uppercase}
+.mark.end{border-top-color:#15171a}.mark.end span{background:#15171a}
+.panel{margin-top:38px;border:1px solid var(--line);border-radius:10px;background:#fff;padding:22px 24px}
+.panel h2{margin:0 0 4px;font-size:17px}
+.panel .lead{color:var(--mut);font-size:13px;margin:0 0 14px}
+.t{width:100%;border-collapse:collapse;font-size:13.5px}
+.t th{text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.08em;
+color:var(--mut);border-bottom:1px solid var(--line);padding:0 10px 7px 0;font-weight:700}
+.t td{padding:9px 10px 9px 0;border-bottom:1px solid #f1f3f4;vertical-align:top}
+.t td.n{font-variant-numeric:tabular-nums;white-space:nowrap}
+.t tr.yr td{background:#f2f4f6;font-weight:700;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:#5b6167;padding:6px 10px;border-bottom:1px solid #e4e7ea}
+.t.log td{font-size:12.5px;padding:7px 10px 7px 0}
+.t.log td:first-child{white-space:nowrap}
+.sm{font-size:11.5px;color:var(--mut)}
+.notes{margin-top:24px;font-size:12.5px;color:var(--mut);border-top:1px solid var(--line);padding-top:16px}
+.notes b{color:var(--ink)}
+@media(max-width:640px){.chart{margin-left:66px}.tick{left:-66px;width:56px}
+.tick .el{font-size:12px}.night,.bank,.mark{left:-66px}}
+</style><style>.sitenav{display:flex;gap:2px;max-width:1100px;margin:0 auto;padding:14px 20px 0;font:600 12px/1 ui-monospace,monospace;letter-spacing:.12em;text-transform:uppercase}.sitenav a{padding:9px 16px;color:#6b7280;text-decoration:none;border:1px solid #e4e7ea;border-bottom:0;background:#f4f4f2}.sitenav a.is-current{color:#15171a;background:#fff;border-color:#15171a}</style>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-PPMTYTHNRW"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-PPMTYTHNRW');
+</script>
+<style>.tbl{width:100%;border-collapse:collapse;font-size:13px;margin:10px 0}.tbl th,.tbl td{padding:7px 8px;border-bottom:1px solid var(--line,#e4e7ea);text-align:left}.tbl th{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--mut,#6b7280)}.tbl .n{text-align:right;font-variant-numeric:tabular-nums}</style></head><body><nav class="sitenav"><a href="./">Home</a><a href="live.html">Live track</a><a href="schedule.html">Schedule</a><a href="history.html">History</a><a href="training.html" class="is-current">Training</a></nav><div class="wrap"><div class="panel">
+<h1 style="margin-top:0">Training and where the estimates come from</h1>
+<p>The stage times on the <a href="schedule.html">schedule</a> are not guesses from a calculator. Most of this course was ridden in the six weeks before the start, in pieces, and the planned durations are those measured efforts with an allowance added for riding them tired, in the dark, and back to back.</p><p class="src">Ride data pulled from Strava on 12 August 2026. Moving time and stopped time are Strava&#39;s own split.</p></div>
+<div class="panel"><h2>Course recon rides</h2>
+<table class="tbl"><thead><tr><th>Date</th><th>Ride</th><th class="n">Miles</th><th class="n">Gain (ft)</th><th class="n">Moving</th><th class="n">mph</th><th class="n">Stopped</th></tr></thead><tbody>
+<tr><td>2026-08-09</td><td>Full stage simulation</td><td class="n">40.3</td><td class="n">6,182</td><td class="n">6:22</td><td class="n">6.3</td><td class="n">1:08</td></tr>
+<tr><td>2026-07-15</td><td>Aqueduct 2 <b>· stage 4</b></td><td class="n">23.6</td><td class="n">3,625</td><td class="n">3:16</td><td class="n">7.2</td><td class="n">0:22</td></tr>
+<tr><td>2026-07-12</td><td>Stage 3 Guyot partial <b>· stage 3</b></td><td class="n">19.4</td><td class="n">2,753</td><td class="n">3:34</td><td class="n">5.4</td><td class="n">1:54</td></tr>
+<tr><td>2026-07-12</td><td>Segment 2 co trail <b>· stage 2</b></td><td class="n">42.2</td><td class="n">5,807</td><td class="n">5:56</td><td class="n">7.1</td><td class="n">1:18</td></tr>
+<tr><td>2026-07-11</td><td>Breck epic stage 1 Penn creek <b>· stage 1</b></td><td class="n">38.1</td><td class="n">5,502</td><td class="n">4:49</td><td class="n">7.9</td><td class="n">0:42</td></tr>
+<tr><td>2026-07-03</td><td>Firecracker course pre ride</td><td class="n">26.2</td><td class="n">3,553</td><td class="n">3:10</td><td class="n">8.2</td><td class="n">0:08</td></tr>
+<tr><td>2026-07-16</td><td>Morning Ride (Guyot area)</td><td class="n">24.6</td><td class="n">3,169</td><td class="n">3:18</td><td class="n">7.4</td><td class="n">0:14</td></tr>
+</tbody></table>
+<p>Across these: <b>214 miles</b>, <b>30,591 ft</b> of climbing, <b>30:29</b> moving, averaging <b>7.0 mph</b>.</p></div>
+<div class="panel"><h2>How that becomes a 58-hour plan</h2><p>Recon pace averaged <b>7.0 mph</b> moving, on fresh legs, in daylight, one stage at a time. The plan does not use that number. It uses something slower, because the thing being estimated is not how fast a stage can be ridden — it is how fast the sixth one gets ridden after fifty hours.</p><p>Two adjustments carry most of the difference. Stages ridden at night, on the Colorado Trail and Aqueduct, are planned slower than they were ridden in July. And the stopped time is planned explicitly rather than absorbed: the schedule allocates it in named blocks, because the <a href="history.html">finisher traces</a> show time off the bike is what separates a 31-hour finish from a 57-hour one.</p><p>Stages 5 and 6 are the softest numbers on the schedule. They were not ridden end to end in recon, so their durations are scaled estimates rather than measured ones — and they are also the last two stages, on the worst legs.</p></div>
+</div></body></html>

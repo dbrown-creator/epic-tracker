@@ -1,0 +1,234 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Breck Epic history — David's Tracker</title><style>
+:root{--ink:#15171a;--mut:#6b7280;--line:#e4e7ea;--bg:#fcfcfb;
+--ride:#2f6f4f;--ride-bg:#e9f2ed;--stop:#b0651a;--stop-bg:#fbecd8;
+--sleep:#3b5aa6;--sleep-bg:#e6ecfa;--move:#9aa0a6;--move-bg:#f0f1f3;
+--red:#b3261e;--good:#1e6b47;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Helvetica,Arial,sans-serif}
+.wrap{max-width:930px;margin:0 auto;padding:44px 24px 100px}
+header{border-bottom:2px solid var(--ink);padding-bottom:16px}
+h1{font-size:31px;margin:0 0 6px;letter-spacing:-.022em}
+.sub{color:var(--mut);font-size:13.5px}
+.meta{display:flex;flex-wrap:wrap;margin:22px 0;border:1px solid var(--line);
+border-radius:10px;background:#fff;overflow:hidden}
+.meta>div{flex:1 1 140px;padding:13px 16px;border-right:1px solid var(--line)}
+.meta>div:last-child{border-right:0}
+.k{color:var(--mut);text-transform:uppercase;letter-spacing:.08em;font-size:10px;margin-bottom:3px}
+.v{font-weight:650;font-size:18px;font-variant-numeric:tabular-nums}
+.v.good{color:var(--good)}
+.v.xl{font-size:23px;letter-spacing:-.02em}
+.meta>div.big{flex:1 1 190px;background:#fff}
+.vs{font-size:11.5px;color:var(--mut);margin-top:3px}
+.v small{font-weight:500;font-size:11.5px;color:var(--mut);display:block;margin-top:2px}
+.box{border:1px solid var(--line);border-radius:10px;background:#fff;padding:18px 20px;margin-bottom:20px}
+.box h2{margin:0 0 8px;font-size:15px}
+.box p{margin:0;font-size:13.5px;color:#43484d}.box p+p{margin-top:8px}
+.box.win{background:#eef6f1;border-color:#cfe3d8;border-left:4px solid var(--good)}
+.box.win h2{color:#17543a}.box.win p{color:#254a3a}
+.routine{display:flex;gap:9px;flex-wrap:wrap;margin-top:10px}
+.routine span{font-size:11.5px;background:var(--stop-bg);color:#7a4512;border:1px solid #e8cba4;
+border-radius:20px;padding:3px 11px;font-weight:600}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:11.5px;color:var(--mut);margin:26px 0 8px}
+.legend i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.chart{position:relative;margin-left:92px;border-top:1px solid var(--line);height:3360px}
+.night{position:absolute;left:-92px;right:0;background:#e9ebf0}
+.grid{position:absolute;left:0;right:0;height:1px;background:rgba(0,0,0,.05)}
+.grid.major{background:rgba(0,0,0,.13)}
+.tick{position:absolute;left:-92px;width:80px;text-align:right;line-height:1.12}
+.tick .dy{display:block;font-size:9px;font-weight:800;letter-spacing:.12em;color:#15171a}
+.tick .el{display:block;font-size:14px;font-weight:650;color:#40454b;font-variant-numeric:tabular-nums}
+.tick .ck{display:block;font-size:9px;color:#b9bec3;font-variant-numeric:tabular-nums}
+.tick.tickmaj .el{color:var(--ink);font-size:15px;font-weight:750}
+.tick.tickstart .el{color:var(--good)}
+.tick.tickstart .ck{color:var(--good);font-weight:700;letter-spacing:.08em}
+.grid.midnight{background:rgba(0,0,0,.3)}
+.blk{position:absolute;left:10px;right:0;border-radius:7px;padding:7px 13px;overflow:hidden;
+border:1px solid var(--line);border-left-width:4px}
+.bt{font-size:14.5px;font-weight:650;letter-spacing:-.012em;line-height:1.25}
+.bd{font-size:12px;color:#4c5257;margin-top:2px;line-height:1.32}
+.ba{font-size:11px;color:var(--mut);margin-top:4px;font-variant-numeric:tabular-nums}
+.bc{float:right;text-align:right;margin-left:14px;line-height:1.2}
+.bc b{display:block;font-size:19px;font-weight:700;color:#15171a;font-variant-numeric:tabular-nums;
+letter-spacing:-.02em;line-height:1.05}
+.bc .rng{display:block;font-size:11px;color:#7c8288;font-weight:600;font-variant-numeric:tabular-nums;
+margin-top:2px;white-space:nowrap}
+.blk.small{padding:5px 13px}.blk.small .bt{font-size:13px}.blk.small .bd{font-size:11px}
+.blk.small .bc b{font-size:16px}.blk.small .bc .rng{font-size:10.5px}
+.blk.tiny{padding:2px 13px;display:flex;align-items:center}
+.blk.tiny .bt{font-size:11px;font-weight:600;color:#5d6369}
+.blk.tiny .bc b{font-size:12px;display:inline}
+.blk.tiny .bc .rng{display:inline;font-size:10px;margin-left:7px}
+.ride{border-left-color:var(--ride);background:var(--ride-bg)}
+.stop{border-left-color:var(--stop);background:var(--stop-bg)}.stop .bt{color:#7a4512}
+.sleep{border-left-color:var(--sleep);background:var(--sleep-bg)}.sleep .bt{color:#22366b}
+.move{border-left-color:var(--move);background:var(--move-bg)}
+.decision{border:2px dashed var(--sleep);border-left-width:4px}
+.grp{position:absolute;left:0;width:4px;border-radius:3px;background:var(--ride);opacity:.55}
+.bank{position:absolute;left:-92px;right:0;background:repeating-linear-gradient(45deg,
+rgba(30,107,71,.07) 0 8px,rgba(30,107,71,.14) 8px 16px);pointer-events:none}
+.mark{position:absolute;left:-92px;right:0;height:0;border-top:2px dashed var(--good);z-index:5}
+.mark span{position:absolute;right:0;top:-9px;background:var(--good);color:#fff;font-size:10px;
+font-weight:700;letter-spacing:.05em;padding:2px 8px;border-radius:4px;text-transform:uppercase}
+.mark.end{border-top-color:#15171a}.mark.end span{background:#15171a}
+.panel{margin-top:38px;border:1px solid var(--line);border-radius:10px;background:#fff;padding:22px 24px}
+.panel h2{margin:0 0 4px;font-size:17px}
+.panel .lead{color:var(--mut);font-size:13px;margin:0 0 14px}
+.t{width:100%;border-collapse:collapse;font-size:13.5px}
+.t th{text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.08em;
+color:var(--mut);border-bottom:1px solid var(--line);padding:0 10px 7px 0;font-weight:700}
+.t td{padding:9px 10px 9px 0;border-bottom:1px solid #f1f3f4;vertical-align:top}
+.t td.n{font-variant-numeric:tabular-nums;white-space:nowrap}
+.t tr.yr td{background:#f2f4f6;font-weight:700;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:#5b6167;padding:6px 10px;border-bottom:1px solid #e4e7ea}
+.t.log td{font-size:12.5px;padding:7px 10px 7px 0}
+.t.log td:first-child{white-space:nowrap}
+.sm{font-size:11.5px;color:var(--mut)}
+.notes{margin-top:24px;font-size:12.5px;color:var(--mut);border-top:1px solid var(--line);padding-top:16px}
+.notes b{color:var(--ink)}
+@media(max-width:640px){.chart{margin-left:66px}.tick{left:-66px;width:56px}
+.tick .el{font-size:12px}.night,.bank,.mark{left:-66px}}
+</style><style>.sitenav{display:flex;gap:2px;max-width:1100px;margin:0 auto;padding:14px 20px 0;font:600 12px/1 ui-monospace,monospace;letter-spacing:.12em;text-transform:uppercase}.sitenav a{padding:9px 16px;color:#6b7280;text-decoration:none;border:1px solid #e4e7ea;border-bottom:0;background:#f4f4f2}.sitenav a.is-current{color:#15171a;background:#fff;border-color:#15171a}</style>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-PPMTYTHNRW"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-PPMTYTHNRW');
+</script>
+</head><body><nav class="sitenav"><a href="./">Home</a><a href="live.html">Live track</a><a href="schedule.html">Schedule</a><a href="history.html" class="is-current">History</a><a href="training.html">Training</a></nav><div class="wrap"><div class="panel">
+<h1 style="margin-top:0">The Breck Epic, and the Mega Epic</h1>
+<p>The <b>Breck Epic</b> is a six-day mountain bike stage race held every August in
+Breckenridge, Colorado. Six stages, each starting and finishing in town, on the
+trail networks around the Tenmile and Front ranges — roughly 217 miles and
+34,805 feet of climbing across the week, most of it above 10,000 feet.</p>
+
+<p>The <b>Mega Epic</b> is what happens when you stop treating those six days as
+six days. Same six courses, ridden end to end as one continuous effort, with the
+clock running through the nights and the sleep. It is a format that exists
+because riders kept asking whether it could be done at all.</p>
+
+<p>What follows is the evidence base this ride was planned against: what the
+tracker traces of past finishers actually show, and what separates a 31-hour
+finish from a 57-hour one. The short version is that it is decided by time off
+the bike, not speed on it.</p>
+
+<p class="src">
+  Event information and registration: <a href="https://breckepic.com" target="_blank" rel="noopener">breckepic.com</a><br>
+  Podcast on the Mega Epic format:
+  <a href="https://open.spotify.com/episode/5xHVAlTCIUBrq707qbbn6G" target="_blank" rel="noopener">listen on Spotify</a>
+</p>
+</div>
+
+<div class="panel">
+<h2>Past finishers — what the Raceflow traces show</h2>
+<p class="lead">Seven finishers across two tracker views. Solid = moving, dashed gaps = stopped. Your plan on the bottom row.</p>
+<svg viewBox="0 0 830 312" width="100%" style="font-family:inherit">
+<line x1="132.0" y1="17.0" x2="132.0" y2="274.0" stroke="#b7bdc3" stroke-width="1"/>
+<text x="132.0" y="293.0" font-size="10" fill="#8b9096" text-anchor="middle">0h</text>
+<line x1="198.8" y1="17.0" x2="198.8" y2="274.0" stroke="#dde1e5" stroke-width="1"/>
+<text x="198.8" y="293.0" font-size="10" fill="#8b9096" text-anchor="middle">6h</text>
+<line x1="265.6" y1="17.0" x2="265.6" y2="274.0" stroke="#b7bdc3" stroke-width="1"/>
+<text x="265.6" y="293.0" font-size="10" fill="#8b9096" text-anchor="middle">12h</text>
+<line x1="332.4" y1="17.0" x2="332.4" y2="274.0" stroke="#dde1e5" stroke-width="1"/>
+<text x="332.4" y="293.0" font-size="10" fill="#8b9096" text-anchor="middle">18h</text>
+<line x1="399.2" y1="17.0" x2="399.2" y2="274.0" stroke="#b7bdc3" stroke-width="1"/>
+<text x="399.2" y="293.0" font-size="10" fill="#8b9096" text-anchor="middle">24h</text>
+<line x1="466.0" y1="17.0" x2="466.0" y2="274.0" stroke="#dde1e5" stroke-width="1"/>
+<text x="466.0" y="293.0" font-size="10" fill="#8b9096" text-anchor="middle">30h</text>
+<line x1="532.8" y1="17.0" x2="532.8" y2="274.0" stroke="#b7bdc3" stroke-width="1"/>
+<text x="532.8" y="293.0" font-size="10" fill="#8b9096" text-anchor="middle">36h</text>
+<line x1="599.6" y1="17.0" x2="599.6" y2="274.0" stroke="#dde1e5" stroke-width="1"/>
+<text x="599.6" y="293.0" font-size="10" fill="#8b9096" text-anchor="middle">42h</text>
+<line x1="666.4" y1="17.0" x2="666.4" y2="274.0" stroke="#b7bdc3" stroke-width="1"/>
+<text x="666.4" y="293.0" font-size="10" fill="#8b9096" text-anchor="middle">48h</text>
+<line x1="733.2" y1="17.0" x2="733.2" y2="274.0" stroke="#dde1e5" stroke-width="1"/>
+<text x="733.2" y="293.0" font-size="10" fill="#8b9096" text-anchor="middle">54h</text>
+<line x1="800.0" y1="17.0" x2="800.0" y2="274.0" stroke="#b7bdc3" stroke-width="1"/>
+<text x="800.0" y="293.0" font-size="10" fill="#8b9096" text-anchor="middle">60h</text>
+<text x="122.0" y="39.0" font-size="12" fill="#15171a" text-anchor="end" font-weight="600">Chase Caughey</text>
+<rect x="132.0" y="28.0" width="341.8" height="15" rx="4" fill="#d4a017" opacity="0.78"/>
+<text x="479.8" y="40.0" font-size="11" font-weight="700" fill="#d4a017">30.7h</text>
+<text x="140.0" y="39.0" font-size="9" fill="#b9bec3">tracker gaps — stops not readable</text>
+<text x="122.0" y="71.0" font-size="12" fill="#15171a" text-anchor="end" font-weight="600">Jeff Kerkove</text>
+<rect x="132.0" y="60.0" width="389.7" height="15" rx="4" fill="#8fb8dd" opacity="0.78"/>
+<rect x="321.3" y="60.0" width="22.3" height="15" rx="3" fill="#fff" opacity=".84"/>
+<rect x="321.3" y="60.0" width="22.3" height="15" rx="3" fill="none" stroke="#8fb8dd" stroke-width="1" stroke-dasharray="2 2"/>
+<text x="527.7" y="72.0" font-size="11" font-weight="700" fill="#8fb8dd">35h</text>
+<text x="122.0" y="103.0" font-size="12" fill="#15171a" text-anchor="end" font-weight="600">Chris Fisher</text>
+<rect x="132.0" y="92.0" width="545.5" height="15" rx="4" fill="#c0392b" opacity="0.78"/>
+<rect x="332.4" y="92.0" width="33.4" height="15" rx="3" fill="#fff" opacity=".84"/>
+<rect x="332.4" y="92.0" width="33.4" height="15" rx="3" fill="none" stroke="#c0392b" stroke-width="1" stroke-dasharray="2 2"/>
+<rect x="466.0" y="92.0" width="44.5" height="15" rx="3" fill="#fff" opacity=".84"/>
+<rect x="466.0" y="92.0" width="44.5" height="15" rx="3" fill="none" stroke="#c0392b" stroke-width="1" stroke-dasharray="2 2"/>
+<text x="683.5" y="104.0" font-size="11" font-weight="700" fill="#c0392b">49h</text>
+<text x="122.0" y="135.0" font-size="12" fill="#15171a" text-anchor="end" font-weight="600">Yuki Ikeda</text>
+<rect x="132.0" y="124.0" width="553.3" height="15" rx="4" fill="#7fa8cf" opacity="0.78"/>
+<text x="691.3" y="136.0" font-size="11" font-weight="700" fill="#7fa8cf">49.7h</text>
+<text x="140.0" y="135.0" font-size="9" fill="#b9bec3">tracker gaps — stops not readable</text>
+<text x="122.0" y="167.0" font-size="12" fill="#15171a" text-anchor="end" font-weight="600">Chris Joice</text>
+<rect x="132.0" y="156.0" width="590.1" height="15" rx="4" fill="#7d3cc0" opacity="0.78"/>
+<rect x="321.3" y="156.0" width="89.1" height="15" rx="3" fill="#fff" opacity=".84"/>
+<rect x="321.3" y="156.0" width="89.1" height="15" rx="3" fill="none" stroke="#7d3cc0" stroke-width="1" stroke-dasharray="2 2"/>
+<rect x="633.0" y="156.0" width="55.7" height="15" rx="3" fill="#fff" opacity=".84"/>
+<rect x="633.0" y="156.0" width="55.7" height="15" rx="3" fill="none" stroke="#7d3cc0" stroke-width="1" stroke-dasharray="2 2"/>
+<text x="728.1" y="168.0" font-size="11" font-weight="700" fill="#7d3cc0">53h</text>
+<text x="122.0" y="199.0" font-size="12" fill="#15171a" text-anchor="end" font-weight="600">Nora Fierman</text>
+<rect x="132.0" y="188.0" width="590.1" height="15" rx="4" fill="#3f8f3f" opacity="0.78"/>
+<rect x="299.0" y="188.0" width="77.9" height="15" rx="3" fill="#fff" opacity=".84"/>
+<rect x="299.0" y="188.0" width="77.9" height="15" rx="3" fill="none" stroke="#3f8f3f" stroke-width="1" stroke-dasharray="2 2"/>
+<rect x="399.2" y="188.0" width="33.4" height="15" rx="3" fill="#fff" opacity=".84"/>
+<rect x="399.2" y="188.0" width="33.4" height="15" rx="3" fill="none" stroke="#3f8f3f" stroke-width="1" stroke-dasharray="2 2"/>
+<rect x="588.5" y="188.0" width="77.9" height="15" rx="3" fill="#fff" opacity=".84"/>
+<rect x="588.5" y="188.0" width="77.9" height="15" rx="3" fill="none" stroke="#3f8f3f" stroke-width="1" stroke-dasharray="2 2"/>
+<text x="728.1" y="200.0" font-size="11" font-weight="700" fill="#3f8f3f">53h</text>
+<text x="122.0" y="231.0" font-size="12" fill="#15171a" text-anchor="end" font-weight="600">Jesse Harodetsky</text>
+<rect x="132.0" y="220.0" width="629.0" height="15" rx="4" fill="#b5651d" opacity="0.78"/>
+<text x="767.0" y="232.0" font-size="11" font-weight="700" fill="#b5651d">56.5h</text>
+<text x="140.0" y="231.0" font-size="9" fill="#b9bec3">tracker gaps — stops not readable</text>
+<line x1="24.0" y1="247.0" x2="800.0" y2="247.0" stroke="#cfd4d8" stroke-width="1"/>
+<text x="122.0" y="266.0" font-size="12" fill="#15171a" text-anchor="end" font-weight="750">YOU — planned</text>
+<rect x="132.0" y="255.0" width="638.2" height="15" rx="4" fill="#b0651a" opacity="0.95"/>
+<rect x="194.6" y="255.0" width="15.4" height="15" rx="3" fill="#fff" opacity=".84"/>
+<rect x="194.6" y="255.0" width="15.4" height="15" rx="3" fill="none" stroke="#b0651a" stroke-width="1" stroke-dasharray="2 2"/>
+<rect x="298.8" y="255.0" width="38.6" height="15" rx="3" fill="#fff" opacity=".84"/>
+<rect x="298.8" y="255.0" width="38.6" height="15" rx="3" fill="none" stroke="#b0651a" stroke-width="1" stroke-dasharray="2 2"/>
+<rect x="456.3" y="255.0" width="13.9" height="15" rx="3" fill="#fff" opacity=".84"/>
+<rect x="456.3" y="255.0" width="13.9" height="15" rx="3" fill="none" stroke="#b0651a" stroke-width="1" stroke-dasharray="2 2"/>
+<rect x="551.9" y="255.0" width="64.0" height="15" rx="3" fill="#fff" opacity=".84"/>
+<rect x="551.9" y="255.0" width="64.0" height="15" rx="3" fill="none" stroke="#b0651a" stroke-width="1" stroke-dasharray="2 2"/>
+<rect x="680.9" y="255.0" width="8.4" height="15" rx="3" fill="#fff" opacity=".84"/>
+<rect x="680.9" y="255.0" width="8.4" height="15" rx="3" fill="none" stroke="#b0651a" stroke-width="1" stroke-dasharray="2 2"/>
+<text x="776.2" y="267.0" font-size="11" font-weight="700" fill="#b0651a">57h19</text>
+</svg>
+<ol style="margin-top:18px">
+<li><b>There are two events happening here, and nothing in between.</b> Finishers cluster at <b>31–35 hours</b> and at <b>49–57 hours</b>. Not one rider landed in the fourteen-hour void between them. The fast group rides straight through; everyone else sleeps twice. That is a choice made before the gun, not a result that emerges during the race.</li>
+<li><b>The race splits in the first night, not the last day.</b> In the clean traces every rider sits within a couple of miles of the others through hour 15, then fans out. Nobody rode away from anybody — they slept away from each other.</li>
+<li><b>Fierman rode faster than Fisher and finished four hours later.</b> 6.0 mph against 5.2, and it bought her nothing: 17 hours off the bike to his 7. That single comparison is the whole 49–57 hour group.</li>
+<li><b>Caughey's 30.7 is the fastest number on the board</b> — 7.1 mph overall for 217 miles and 34,805 feet. Worth knowing it exists; not worth chasing.</li>
+<li><b>Your projection sits at the back of the sleep-twice cluster, by minutes.</b> 57h19 against Harodetsky's ~56.5. You are inside the pack, not off the back of it — and you are the only one here with a written stop plan.</li>
+</ol>
+</div>
+
+<div class="panel">
+<h2>Riding pace vs. stopped time</h2>
+<p class="lead">217 miles, 34,805 ft. Overall speed is the finish line; riding speed backs the stops out. Stops read off the traces — treat as ±1h, and only where the tracker was continuous.</p>
+<table class="t">
+<tr><th>Rider</th><th>Finish</th><th>Stopped</th><th>Riding</th><th>Riding speed</th><th>Overall</th></tr>
+<tr><td><b>Chase Caughey</b></td><td class="n">30h42</td><td class="n">—</td><td class="n">—</td><td class="n sm">not readable</td><td class="n"><b>7.1 mph</b></td></tr>
+<tr><td><b>Jeff Kerkove</b></td><td class="n">35h</td><td class="n">~2h</td><td class="n">~33h</td><td class="n"><b>6.6 mph</b></td><td class="n">6.2 mph</td></tr>
+<tr><td><b>Chris Fisher</b></td><td class="n">49h</td><td class="n">~7h</td><td class="n">~42h</td><td class="n">5.2 mph</td><td class="n">4.4 mph</td></tr>
+<tr><td><b>Yuki Ikeda</b></td><td class="n">49h42</td><td class="n">—</td><td class="n">—</td><td class="n sm">not readable</td><td class="n">4.4 mph</td></tr>
+<tr><td><b>Nora Fierman</b></td><td class="n">53h</td><td class="n">~17h</td><td class="n">~36h</td><td class="n"><b>6.0 mph</b></td><td class="n">4.1 mph</td></tr>
+<tr><td><b>Chris Joice</b></td><td class="n">53h</td><td class="n">~13h</td><td class="n">~40h</td><td class="n">5.4 mph</td><td class="n">4.1 mph</td></tr>
+<tr><td><b>Jesse Harodetsky</b></td><td class="n">~56h30</td><td class="n">—</td><td class="n">—</td><td class="n sm">not readable</td><td class="n">3.8 mph</td></tr>
+<tr style="background:#fbecd8"><td><b>You — planned</b></td><td class="n"><b>57h19</b></td><td class="n">12h28</td><td class="n">43h36</td><td class="n">5.0 mph</td><td class="n">3.8 mph</td></tr>
+</table>
+<p style="font-size:12.5px;color:#6b7280;margin-top:14px"><b>Why three rows say "not readable."</b> Caughey, Ikeda and Harodetsky's traces each contain vertical jumps — 40 to 80 miles gained in essentially zero elapsed time, which is physically impossible. Those are InReach dropouts, and the long plateaus sitting next to them are the same gaps seen from the other side. Harodetsky's trace would imply 31 hours stopped and 25 hours riding at 8.7 mph; it simply isn't real data. Their finish times are solid. Their stop patterns are not, and averaging them in would poison the comparison.</p>
+<p style="font-size:13.5px;margin-top:12px"><b>What this means for the plan.</b> Your projected riding pace of 5.0 mph sits inside the range of every clean finisher (5.2 / 5.4 / 6.0). You are not slow — you are budgeting 12h28 off the bike, which lands between Fisher's 7h and Joice's 13h. Trim toward Fisher and the same legs finish near <b>51 hours</b>. That is the entire lever, and it is a kitchen-timer problem, not a fitness one.</p>
+</div>
+
+
+</div></body></html>
