@@ -4,12 +4,13 @@
     "1": "2026-08-12T14:30:00-06:00"
   },
   "note": "Stage 1 finished ~14:30 MT (reported by Dave; tracker delivered nothing between mile 22.4 at 12:35 and the finish). Stage 2 started 15:41 MT, set manually so the rail runs before the first on-course fix arrives.",
-  "setAt": "2026-08-12T15:41:00-06:00",
+  "setAt": "2026-08-12T16:33:00-06:00",
   "starts": {
     "2": "2026-08-12T15:41:00-06:00"
   },
   "banner": {
-    "message": "Stage 1 done — heading out for stage 2. Tracking was patchy through stage 1: the satellite messenger lost most of its messages in the gulches, so the map has gaps that are not gaps in the ride. Trying a different mount position for stage 2 and hoping it comes through cleaner.",
-    "setAt": "2026-08-12T15:52:00-06:00"
+    "title": "Rolling out on stage 2",
+    "body": "Stage 1 done in 5:27. Weather held him at the house through the afternoon; back on course now for the Colorado Trail. Tracking was patchy on stage 1 — the satellite messenger was mounted flat in a jersey pocket and only 39% of expected fixes got through. It has been remounted facing the sky for stage 2, so gaps should be shorter from here.",
+    "setAt": "2026-08-12T16:33:00-06:00"
   }
 }
