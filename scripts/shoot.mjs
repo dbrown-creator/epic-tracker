@@ -41,6 +41,24 @@ async function main() {
   await mkdir(PREVIEW, { recursive: true });
   await cp('docs', PREVIEW, { recursive: true });
 
+  // Nine states at two widths is eighteen pageviews per run, from localhost,
+  // into the real property. Strip the tag from the copy.
+  for (const page of ['live.html', 'index.html', 'schedule.html']) {
+    const p = join(PREVIEW, page);
+    try {
+      const html = await readFile(p, 'utf8');
+      await writeFile(
+        p,
+        html.replace(
+          /<!-- Google tag[\s\S]*?<\/script>\s*<script>[\s\S]*?<\/script>/,
+          '<!-- analytics stripped for screenshots -->'
+        )
+      );
+    } catch {
+      /* a missing page just means nothing to strip */
+    }
+  }
+
   const server = createServer(async (req, res) => {
     const path = decodeURIComponent(req.url.split('?')[0]);
     const file = join(PREVIEW, path === '/' ? 'live.html' : path);

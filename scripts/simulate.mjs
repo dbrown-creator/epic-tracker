@@ -103,7 +103,13 @@ async function main() {
 
   // Inject the shim into the copy only. Kept as a template so SIM0 can be
   // stamped at request time.
-  const rawHtml = await readFile(join(SIM, 'live.html'), 'utf8');
+  // Strip analytics from the copy. A 60-second replay reloads every cycle, so
+  // leaving the tag in would fire dozens of localhost pageviews into the real
+  // property and make race-day traffic unreadable.
+  const rawHtml = (await readFile(join(SIM, 'live.html'), 'utf8')).replace(
+    /<!-- Google tag[\s\S]*?<\/script>\s*<script>[\s\S]*?<\/script>/,
+    '<!-- analytics stripped for simulation -->'
+  );
   const htmlTemplate = rawHtml.replace(
     '<script src="app.js"></script>',
     clockShim(SPEED, REPEAT, (WALL_SECONDS + 5) * 1000) + '<script src="app.js"></script>'
