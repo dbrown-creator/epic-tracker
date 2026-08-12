@@ -564,7 +564,19 @@
           : prevFinish
             ? Date.parse(prevFinish) / 1000
             : null;
-        return { ...row, state: 'active', startedT, corrected: true };
+        // Must carry every field the active row renders, or the rail throws
+        // mid-render and the remaining stages never draw at all.
+        const span = course.stageSpans.find((x) => x.stage === n);
+        const milesTotal = row.milesTotal ?? (span ? span.miles : row.stage.miles) ?? row.stage.miles;
+        return {
+          ...row,
+          state: 'active',
+          startedT,
+          runningMs: startedT ? Math.max(0, Date.now() - startedT * 1000) : 0,
+          milesIn: row.milesIn ?? 0,
+          milesTotal,
+          corrected: true,
+        };
       }
 
       // A finish time can be supplied for a stage the walk already closed.
@@ -1263,11 +1275,16 @@
           <p class="stage__figlabel">elapsed for stage</p>
           <p class="stage__time">finished ${clockFmt.format(new Date(st.finishedT * 1000))}</p>`;
       } else if (st.state === 'active') {
-        const pct = Math.min(100, Math.round((st.milesIn / st.milesTotal) * 100));
+        // Defensive: this loop builds every stage box, so one missing field
+        // here used to throw and leave the rail with a single stage in it.
+        // A row that cannot say how far in he is should still say it is running.
+        const milesIn = Number.isFinite(st.milesIn) ? st.milesIn : 0;
+        const milesTotal = Number.isFinite(st.milesTotal) && st.milesTotal > 0 ? st.milesTotal : s.miles;
+        const pct = Math.min(100, Math.round((milesIn / milesTotal) * 100));
         body = `
           <p class="stage__figure">${hhmm(st.runningMs)}</p>
           <p class="stage__figlabel">on this stage</p>
-          <p class="stage__time">${st.milesIn.toFixed(1)} of ${st.milesTotal.toFixed(1)} mi</p>
+          <p class="stage__time">${milesIn.toFixed(1)} of ${milesTotal.toFixed(1)} mi</p>
           <div class="stage__bar"><span style="width:${pct}%"></span></div>`;
       } else {
         const eta = st.etaStartMs
