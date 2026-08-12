@@ -1263,6 +1263,19 @@
     $('meta-start').textContent = fullDateFmt.format(new Date(START_MS));
     document.title = `${CFG.title} · Live Track`;
 
+    // A second, independent view of the same device. If this page and reality
+    // disagree, that is the tiebreaker — it reads the tracker directly rather
+    // than through this pipeline, so it stays right even when the poller, the
+    // Action or GitHub Pages is having a bad night.
+    const backup = $('backup-note');
+    if (backup && CFG.spotShareUrl) {
+      backup.innerHTML =
+        'Something look wrong? Check the tracker directly on ' +
+        `<a href="${CFG.spotShareUrl}" target="_blank" rel="noopener">SPOT's own map</a>` +
+        ' — same device, independent of this page.';
+      backup.hidden = false;
+    }
+
     initMap();
     buildLegend();
     loadCourses().then(refresh);
