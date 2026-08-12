@@ -935,6 +935,40 @@
 
   /* ---------- readouts ---------- */
 
+  /**
+   * Before the gun the map has nothing to draw, so it counts down to the start
+   * instead. "Waiting on the first fix" is true but reads like something is
+   * wrong; a countdown says the same thing and answers the question people
+   * actually arrived with.
+   */
+  function emptyStateHtml(now) {
+    if (now >= START_MS) return 'No positions received yet.';
+    const left = START_MS - now;
+    const d = Math.floor(left / 86400000);
+    const h = Math.floor((left % 86400000) / 3600000);
+    const m = Math.floor((left % 3600000) / 60000);
+    const s = Math.floor((left % 60000) / 1000);
+    const clock = d > 0
+      ? `${d}d ${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
+      : `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    return (
+      '<span class="countdown__label">Race starts in</span>' +
+      `<span class="countdown__clock">${clock}</span>` +
+      `<span class="countdown__sub">${fullDateFmt.format(new Date(START_MS))}</span>`
+    );
+  }
+
+  /** Ticks the countdown every second; the page itself only refreshes a minute. */
+  function startCountdownTicker() {
+    setInterval(() => {
+      const el = $('map-empty');
+      if (!el || el.hidden || document.visibilityState !== 'visible') return;
+      const now = Date.now();
+      if (now >= START_MS + 1000) return; // the race is on; refresh owns it now
+      el.innerHTML = emptyStateHtml(now);
+    }, 1000);
+  }
+
   function setStatusBar(age, where, mile, stale) {
     const a = $('sb-age');
     if (!a) return;
@@ -1090,8 +1124,7 @@
 
     if (!fixes.length) {
       $('map-empty').hidden = false;
-      $('map-empty').textContent =
-        now < START_MS ? 'Waiting on the first fix.' : 'No positions received yet.';
+      $('map-empty').innerHTML = emptyStateHtml(now);
       $('fix-age').textContent = '—';
       $('fix-time').textContent =
         now < START_MS ? `Starts ${clockFmt.format(new Date(START_MS))}` : 'No data yet';
@@ -1284,6 +1317,7 @@
 
     initMap();
     buildLegend();
+    startCountdownTicker();
     loadCourses().then(refresh);
     refresh();
 
