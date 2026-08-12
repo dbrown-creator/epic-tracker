@@ -109,11 +109,9 @@
     return Math.floor(h) + ':' + String(Math.round((h % 1) * 60)).padStart(2, '0');
   };
 
-  var startMs = Date.parse(CFG.startLocal + 'Z');
-  var fmt = new Intl.DateTimeFormat('en-US', {
-    weekday: 'short', hour: 'numeric', minute: '2-digit', timeZone: 'UTC',
-  });
-
+  // No clock times on this page — only durations and offsets from the gun —
+  // so there is deliberately no formatter here. Anything that needs a wall
+  // clock must use America/Denver, as the live page does.
   CFG.stages.forEach(function (s) {
     var li = document.createElement('li');
     li.className = 'stage is-todo';

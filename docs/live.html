@@ -102,10 +102,11 @@
       </div>
 
       <div class="layers">
-        <p class="readout__label">
-          Course
-          <label class="layers__all"><input type="checkbox" id="layers-all" checked> all</label>
-        </p>
+        <p class="readout__label">Course</p>
+        <div class="layers__toggle" role="group" aria-label="Which stage lines to draw">
+          <button type="button" data-show="all" class="is-active">All stages</button>
+          <button type="button" data-show="active">Active only</button>
+        </div>
         <div id="layers"></div>
       </div>
 

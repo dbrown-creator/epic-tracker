@@ -654,9 +654,9 @@
   let emphasised = null;
   let tileErrors = 0;
 
-  // Which stage traces are drawn. Colour now does the work of telling them
-  // apart, so this is about reducing clutter rather than rescuing legibility.
-  const shown = new Set([1, 2, 3, 4, 5, 6]);
+  // 'all' or 'active'. Colour does the work of telling the stages apart, so
+  // this is about reducing clutter rather than rescuing legibility.
+  let showMode = 'all';
 
   /** The stage he is on is drawn heavier; the rest stay full colour. */
   function emphasiseStage(n) {
@@ -667,8 +667,13 @@
   function applyStageStyles() {
     for (const [k, pair] of Object.entries(stagePolys)) {
       const num = Number(k);
-      const on = shown.has(num);
       const active = num === emphasised;
+      // "Active only" falls back to showing everything when no stage is
+      // resolved — before the start, or during a break. An empty map would
+      // read as a fault rather than as a filter.
+      const on = showMode === 'all' || emphasised == null || active;
+      const row = $(`layer-row-${num}`);
+      if (row) row.classList.toggle('is-off', !on);
 
       for (const layer of [pair.casing, pair.poly]) {
         if (on && !layers.courses.hasLayer(layer)) layers.courses.addLayer(layer);
@@ -688,50 +693,38 @@
     if (drawn.head && drawn.head.setZIndexOffset) drawn.head.setZIndexOffset(1000);
   }
 
-  /** Checkbox per stage, the way a layered map lets you peel routes apart. */
+  /**
+   * A colour key, plus one decision: everything, or just the stage he is on.
+   *
+   * Six checkboxes gave finer control than anyone actually wants at 4am on a
+   * phone. The real question is only ever "show me the whole course" or "get
+   * the other five lines out of the way".
+   */
   function buildLegend() {
     const box = $('layers');
-    if (!box) return;
-    box.innerHTML = '';
-
-    for (const s of CFG.stages) {
-      const id = `layer-${s.n}`;
-      const row = document.createElement('label');
-      row.className = 'layer';
-      row.innerHTML = `
-        <input type="checkbox" id="${id}" checked>
-        <span class="layer__swatch" style="background:${s.color}"></span>
-        <span class="layer__name">${s.n} · ${s.name}</span>
-        <span class="layer__mi">${s.miles}</span>
-      `;
-      row.querySelector('input').addEventListener('change', (e) => {
-        if (e.target.checked) shown.add(s.n);
-        else shown.delete(s.n);
-        applyStageStyles();
-        syncLegendAll();
-      });
-      box.appendChild(row);
+    if (box) {
+      box.innerHTML = '';
+      for (const s of CFG.stages) {
+        const row = document.createElement('p');
+        row.className = 'layer';
+        row.id = `layer-row-${s.n}`;
+        row.innerHTML =
+          `<span class="layer__swatch" style="background:${s.color}"></span>` +
+          `<span class="layer__name">${s.n} · ${s.name}</span>` +
+          `<span class="layer__mi">${s.miles}</span>`;
+        box.appendChild(row);
+      }
     }
 
-    const all = $('layers-all');
-    if (all) {
-      all.addEventListener('change', () => {
-        CFG.stages.forEach((s) => {
-          const cb = $(`layer-${s.n}`);
-          if (cb) cb.checked = all.checked;
-          if (all.checked) shown.add(s.n);
-          else shown.delete(s.n);
-        });
+    document.querySelectorAll('.layers__toggle button').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        showMode = btn.dataset.show;
+        document
+          .querySelectorAll('.layers__toggle button')
+          .forEach((b) => b.classList.toggle('is-active', b === btn));
         applyStageStyles();
       });
-    }
-  }
-
-  function syncLegendAll() {
-    const all = $('layers-all');
-    if (!all) return;
-    all.checked = shown.size === CFG.stages.length;
-    all.indeterminate = shown.size > 0 && shown.size < CFG.stages.length;
+    });
   }
 
   function initMap() {

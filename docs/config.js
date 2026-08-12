@@ -36,7 +36,7 @@ window.RACE_CONFIG = {
   // The SPOT shared page. A second, independent view of the same device, for
   // when this page and reality disagree and someone needs a tiebreaker.
   // Set to the share URL; null hides the link.
-  spotShareUrl: 'https://maps.findmespot.com/s/JVPX',
+  spotShareUrl: 'https://maps.findmespot.com/s/D1D9',
 
   // Stage transitions are detected from behaviour, not the clock. Every stage
   // change involves a long stop in town to reload gear and eat, sometimes to
