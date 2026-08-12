@@ -522,6 +522,50 @@
     return best;
   }
 
+  /**
+   * Applies a manual correction on top of what the fixes show.
+   *
+   * `stage` is a floor, not an assignment: every stage below it is finished,
+   * and the walk is free to be further along than the override claims but
+   * never behind it. `finishes` supplies a finish time per stage for the ones
+   * the tracker never saw, so the rail can show a real elapsed time instead
+   * of guessing from a fix that arrived miles earlier.
+   */
+  function applyOverride(list) {
+    if (!override || !list.length) return list;
+    const floor = Number(override.stage);
+    const finishes = override.finishes || {};
+
+    return list.map((row) => {
+      const n = row.stage.n;
+      const finishIso = finishes[String(n)];
+      const finishT = finishIso ? Date.parse(finishIso) / 1000 : null;
+
+      if (n < floor && row.state !== 'done') {
+        const startedT = row.startedT ?? (finishT ? finishT - row.stage.durationHours * 3600 : null);
+        return {
+          ...row,
+          state: 'done',
+          startedT,
+          finishedT: finishT ?? row.finishedT,
+          durationMs:
+            finishT && startedT ? Math.max(0, (finishT - startedT) * 1000) : row.durationMs,
+          corrected: true,
+        };
+      }
+      // A finish time can be supplied for a stage the walk already closed.
+      if (row.state === 'done' && finishT) {
+        return {
+          ...row,
+          finishedT: finishT,
+          durationMs: row.startedT ? Math.max(0, (finishT - row.startedT) * 1000) : row.durationMs,
+          corrected: true,
+        };
+      }
+      return row;
+    });
+  }
+
   function stageStatuses(fixes) {
     const spans = course.stageSpans;
     if (!spans.length) return [];
@@ -1188,7 +1232,7 @@
     const list = $('stage-rail');
     list.innerHTML = '';
 
-    const statuses = stageStatuses(fixes || []);
+    const statuses = applyOverride(stageStatuses(fixes || []));
     // Before the start, or with no course data, everything is simply ahead.
     const fallback = !statuses.length;
 
@@ -1237,6 +1281,8 @@
   /* ---------- boot ---------- */
 
   let consecutiveFailures = 0;
+  // Manual stage correction, loaded from data/override.json each refresh.
+  let override = null;
 
   async function readJson(path) {
     const res = await fetch(`${path}?t=${Date.now()}`, { cache: 'no-store' });
@@ -1250,6 +1296,17 @@
       status = await readJson('data/status.json');
     } catch (_) {
       /* the heartbeat is allowed to be missing; renderStats says so */
+    }
+
+    // A manual correction, for when the tracker cannot see what happened.
+    // Satellite gaps mean a stage can be finished with no fix anywhere near
+    // the finish, and no amount of cleverness recovers a transmission that was
+    // never received. Absent by design — 404 is the normal case.
+    try {
+      const o = await readJson('data/override.json');
+      override = o && Number.isFinite(Number(o.stage)) ? o : null;
+    } catch (_) {
+      override = null;
     }
 
     try {
