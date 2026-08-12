@@ -125,16 +125,6 @@
     return null;
   }
 
-  /** Next road crossing ahead — the only places a vehicle can reach him. */
-  function nextCrossing(mile) {
-    let best = null;
-    for (const m of course.markers) {
-      if ((m.kind !== 'crossing' && m.kind !== 'water') || m.mile == null) continue;
-      if (m.mile > mile + 0.2 && (!best || m.mile < best.mile)) best = m;
-    }
-    return best;
-  }
-
   /* ---------- plan versus actual ---------- */
 
   /**
@@ -654,13 +644,6 @@
     return { moving: false, sinceMs: stoppedMs, sinceT: since, ageMs: now - since * 1000 };
   }
 
-  /** Does the marker set cover any ground beyond here at all? */
-  function hasCrossingsBeyond(mile) {
-    return course.markers.some(
-      (m) => (m.kind === 'crossing' || m.kind === 'water') && m.mile != null && m.mile > mile
-    );
-  }
-
   /* ---------- map ---------- */
 
   let map;
@@ -765,6 +748,14 @@
       'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
       { maxZoom: 18, attribution: 'Esri, Maxar, Earthstar Geographics' }
     );
+    // Terrain shading with none of the topo sheet's contour clutter. The six
+    // stage colours have to compete with whatever is underneath them, and the
+    // USGS sheet is the busiest thing available — this is the same landscape
+    // with the noise turned down.
+    layers.relief = L.tileLayer(
+      'https://server.arcgisonline.com/ArcGIS/rest/services/World_Shaded_Relief/MapServer/tile/{z}/{y}/{x}',
+      { maxZoom: 13, attribution: 'Esri' }
+    );
     layers.topo.addTo(map);
 
     // A tile server having a bad night should say so, not just look like a
@@ -782,7 +773,7 @@
     document.querySelectorAll('.basemap-toggle button').forEach((btn) => {
       btn.addEventListener('click', () => {
         const want = btn.dataset.basemap;
-        Object.entries({ topo: layers.topo, imagery: layers.imagery }).forEach(([k, layer]) => {
+        Object.entries({ topo: layers.topo, relief: layers.relief, imagery: layers.imagery }).forEach(([k, layer]) => {
           if (k === want) layer.addTo(map);
           else map.removeLayer(layer);
         });
@@ -810,16 +801,16 @@
         // a busy topo need separating from the basemap as well as from each
         // other, and this is how a printed map does it.
         const casing = L.polyline(line, {
-          color: '#EDE4D3',
-          weight: 6,
-          opacity: 0.55,
+          color: '#FBF6EC',
+          weight: 7,
+          opacity: 0.85,
           lineJoin: 'round',
         }).addTo(layers.courses);
 
         const poly = L.polyline(line, {
           color: stage.color || '#6E4A26',
-          weight: 3,
-          opacity: 0.9,
+          weight: 3.4,
+          opacity: 1,
           lineJoin: 'round',
         })
           .bindTooltip(`Stage ${stage.n} — ${stage.name}`, { sticky: true })
@@ -1042,31 +1033,6 @@
 
     renderPlan(snap);
 
-    // Nearest point a crew vehicle could reach, with a rough ETA from the
-    // pace over the last few hours rather than an average over the whole ride.
-    const crew = $('crew');
-    const crewSub = $('crew-sub');
-    if (crew) {
-      const nx = snap.onCourse ? nextCrossing(snap.mile) : null;
-      if (!nx) {
-        crew.textContent = 'None mapped';
-        // The official route data only carries markers for stages 1-3, so past
-        // roughly mile 78 there is nothing to point at. Saying "no crossing
-        // ahead" would imply the course has no road access, which is wrong and
-        // exactly the sort of thing a crew would act on.
-        crewSub.textContent = hasCrossingsBeyond(snap.mile)
-          ? 'No crossing ahead'
-          : 'Route data has no markers past stage 3';
-      } else {
-        const away = nx.mile - snap.mile;
-        const mph = recentPace(fixes);
-        crew.textContent = nx.title;
-        crewSub.textContent = mph
-          ? `${away.toFixed(1)} mi · ~${timeOnlyFmt.format(new Date(Date.now() + (away / mph) * 3600000))}`
-          : `${away.toFixed(1)} mi ahead`;
-      }
-    }
-
     setStatusBar(ageText, where.textContent, progress.textContent, stale);
   }
 
@@ -1101,23 +1067,10 @@
     sub.textContent = `plan says mile ${planMile.toFixed(1)}`;
   }
 
-  /** Miles per hour over the last two hours of fixes, or null if too few. */
-  function recentPace(fixes) {
-    const cutoff = Date.now() / 1000 - 2 * 3600;
-    const recent = fixes.filter((p) => p.t >= cutoff);
-    if (recent.length < 3) return null;
-    let miles = 0;
-    for (let i = 1; i < recent.length; i++) miles += haversineMiles(recent[i - 1], recent[i]);
-    const hours = (recent[recent.length - 1].t - recent[0].t) / 3600;
-    if (hours <= 0.25 || miles < 0.5) return null;
-    return miles / hours;
-  }
-
   function renderStats(points, status) {
     const now = Date.now();
     const fixes = points.filter((p) => p.positioned);
 
-    $('fix-count').textContent = `${fixes.length} ${fixes.length === 1 ? 'fix' : 'fixes'} on file`;
 
     // Pipeline health is separate from rider silence. A stale heartbeat means
     // the page cannot vouch for anything below it, which is worth saying out
@@ -1150,7 +1103,6 @@
       $('fix-time').textContent =
         now < START_MS ? `Starts ${clockFmt.format(new Date(START_MS))}` : 'No data yet';
       $('elapsed').textContent = now < START_MS ? '—' : hhmm(now - START_MS);
-      $('distance').textContent = '—';
       $('position').textContent = '—';
       renderPings([], now);
       renderCourseReadout(null, [], '—', false);
@@ -1180,10 +1132,6 @@
 
     $('elapsed').textContent = now < START_MS ? '—' : hhmm(now - START_MS);
     $('elapsed-sub').textContent = `of ${CFG.targetHours} h target`;
-
-    let miles = 0;
-    for (let i = 1; i < fixes.length; i++) miles += haversineMiles(fixes[i - 1], fixes[i]);
-    $('distance').textContent = `${miles.toFixed(1)} mi`;
 
     $('position').textContent = `${last.lat.toFixed(5)}, ${last.lon.toFixed(5)}`;
 

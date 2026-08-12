@@ -70,7 +70,7 @@ window.RACE_CONFIG = {
   stages: [
     {
       n: 1,
-      color: '#3F6B3A',
+      color: '#1F5E1A',
       name: 'Pennsylvania Creek',
       from: 'Ice Rink',
       to: 'Carter Park',
@@ -82,7 +82,7 @@ window.RACE_CONFIG = {
     },
     {
       n: 2,
-      color: '#2E6E8E',
+      color: '#0B4F7A',
       name: 'Colorado Trail',
       from: 'Lower Washington',
       to: 'B&B Trailhead',
@@ -94,7 +94,7 @@ window.RACE_CONFIG = {
     },
     {
       n: 3,
-      color: '#6B4C7A',
+      color: '#5A2270',
       name: 'Mount Guyot',
       from: 'Lower Washington',
       to: 'B&B Trailhead',
@@ -108,7 +108,7 @@ window.RACE_CONFIG = {
     },
     {
       n: 4,
-      color: '#2F7268',
+      color: '#0A6B57',
       name: 'Aqueduct',
       from: 'Lower Washington',
       to: 'B&B Trailhead',
@@ -121,7 +121,7 @@ window.RACE_CONFIG = {
     },
     {
       n: 5,
-      color: '#B0762A',
+      color: '#B25A06',
       name: 'Wheeler',
       from: 'Beaver Run',
       to: 'Peaks Trailhead',
@@ -134,7 +134,7 @@ window.RACE_CONFIG = {
     },
     {
       n: 6,
-      color: '#8A5A32',
+      color: '#7A3410',
       name: 'Gold Dust',
       from: 'Ice Rink',
       to: 'Ice Rink',

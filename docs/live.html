@@ -81,6 +81,7 @@
       <div class="neatline" aria-hidden="true"></div>
       <div class="basemap-toggle">
         <button type="button" data-basemap="topo" class="is-active">Topo</button>
+        <button type="button" data-basemap="relief">Relief</button>
         <button type="button" data-basemap="imagery">Satellite</button>
       </div>
       <p class="mapframe__empty" id="map-empty" hidden>Waiting on the first fix.</p>
@@ -134,22 +135,8 @@
       </div>
 
       <div class="readout">
-        <p class="readout__label">Next road access</p>
-        <p class="readout__value readout__value--sm" id="crew">—</p>
-        <p class="readout__sub" id="crew-sub">Where a vehicle could reach him</p>
-      </div>
-
-      <div class="grid2">
-        <div class="readout">
-          <p class="readout__label">Tracked</p>
-          <p class="readout__value readout__value--sm" id="distance">—</p>
-          <p class="readout__sub">straight lines between fixes</p>
-        </div>
-        <div class="readout">
-          <p class="readout__label">Position</p>
-          <p class="readout__value readout__value--sm" id="position">—</p>
-          <p class="readout__sub" id="fix-count">0 fixes on file</p>
-        </div>
+        <p class="readout__label">Latest position</p>
+        <p class="readout__value readout__value--sm" id="position">—</p>
       </div>
 
     </aside>
