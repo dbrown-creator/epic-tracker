@@ -23,7 +23,13 @@ window.RACE_CONFIG = {
 
   // Gen4 ping cadence, and how long silence goes before the page says so.
   pingIntervalMinutes: 10,
-  staleAfterMinutes: 25,
+  // Widened from 25 after measuring stage 1: delivery ran at 39%, with clean
+  // 10-minute cadence on open ground and 76-79 minute gaps through the Penn
+  // and Indiana Gulch climbs. The Gen4 transmits one-way with no retry, so a
+  // message sent from a steep gulch is simply lost. At 25 minutes the page sat
+  // red for most of a normal stage, which teaches the crew to ignore it. 45
+  // still flags a genuine outage while treating terrain masking as terrain.
+  staleAfterMinutes: 45,
 
   // The poller writes a heartbeat every run. If it is older than this, the
   // pipeline itself is suspect and the page says so rather than showing a
