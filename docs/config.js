@@ -33,6 +33,11 @@ window.RACE_CONFIG = {
   // How often the page re-reads track.json.
   refreshSeconds: 60,
 
+  // The SPOT shared page. A second, independent view of the same device, for
+  // when this page and reality disagree and someone needs a tiebreaker.
+  // Set to the share URL; null hides the link.
+  spotShareUrl: null,
+
   // Stage transitions are detected from behaviour, not the clock. Every stage
   // change involves a long stop in town to reload gear and eat, sometimes to
   // sleep — at the house for most of them, the Ice Rink lot between 5 and 6.

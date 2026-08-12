@@ -1280,7 +1280,12 @@
 
     try {
       const data = await readJson('data/track.json');
-      const points = Array.isArray(data.points) ? data.points : [];
+      // The archive keeps everything — it is the permanent record and the
+      // poller never drops a point. But the page only shows the race: setup
+      // and test fixes from the days before would otherwise draw a tail on
+      // the map and count towards distance.
+      const all = Array.isArray(data.points) ? data.points : [];
+      const points = all.filter((p) => p.t * 1000 >= START_MS);
       const fixes = points.filter((p) => p.positioned);
       consecutiveFailures = 0;
       drawTrack(fixes);
