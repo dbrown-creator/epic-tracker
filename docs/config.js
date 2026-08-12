@@ -38,6 +38,11 @@ window.RACE_CONFIG = {
   // Set to the share URL; null hides the link.
   spotShareUrl: 'https://maps.findmespot.com/s/D1D9',
 
+  // Where people cheer. Deliberately not a comment box on this page: Strava
+  // already has real names, existing accounts, and moderation Dave controls,
+  // and each stage gets uploaded there anyway.
+  stravaUrl: 'https://www.strava.com/athletes/48793176',
+
   // Stage transitions are detected from behaviour, not the clock. Every stage
   // change involves a long stop in town to reload gear and eat, sometimes to
   // sleep — at the house for most of them, the Ice Rink lot between 5 and 6.

@@ -357,6 +357,14 @@ body::before {
 }
 .button:hover { background: var(--paper); color: var(--overprint); }
 
+/* Secondary to the live track, but still a real invitation. */
+.button--ghost {
+  background: transparent;
+  color: var(--contour-deep);
+  border-color: var(--contour-deep);
+}
+.button--ghost:hover { background: var(--contour-deep); color: var(--paper); }
+
 /* Reads as "not yet", not as "broken": muted, dashed, and not clickable. */
 .button.is-disabled {
   background: transparent;

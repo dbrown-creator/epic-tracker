@@ -69,6 +69,7 @@
            tracker with nothing on it is a worse first impression than telling
            them when to come back. -->
       <span class="button is-disabled" aria-disabled="true">Live tracking opens Wednesday 9:00 AM</span>
+      <a class="button button--ghost" id="cheer-link" href="#" hidden>Cheer him on →</a>
       <span class="hero__ctasub">Position updates roughly every 10 minutes from a SPOT&nbsp;Gen4 satellite messenger</span>
     </p>
   </section>
@@ -112,6 +113,14 @@
   // No clock times on this page — only durations and offsets from the gun —
   // so there is deliberately no formatter here. Anything that needs a wall
   // clock must use America/Denver, as the live page does.
+  var cheer = document.getElementById('cheer-link');
+  if (cheer && CFG.stravaUrl) {
+    cheer.href = CFG.stravaUrl;
+    cheer.target = '_blank';
+    cheer.rel = 'noopener';
+    cheer.hidden = false;
+  }
+
   CFG.stages.forEach(function (s) {
     var li = document.createElement('li');
     li.className = 'stage is-todo';

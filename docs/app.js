@@ -1261,12 +1261,25 @@
     // than through this pipeline, so it stays right even when the poller, the
     // Action or GitHub Pages is having a bad night.
     const backup = $('backup-note');
-    if (backup && CFG.spotShareUrl) {
-      backup.innerHTML =
-        'Something look wrong? Check the tracker directly on ' +
-        `<a href="${CFG.spotShareUrl}" target="_blank" rel="noopener">SPOT's own map</a>` +
-        ' — same device, independent of this page.';
-      backup.hidden = false;
+    if (backup) {
+      const bits = [];
+      if (CFG.stravaUrl) {
+        bits.push(
+          `<a href="${CFG.stravaUrl}" target="_blank" rel="noopener"><strong>Cheer him on →</strong></a> ` +
+            'Each stage goes up on Strava as he finishes it.'
+        );
+      }
+      if (CFG.spotShareUrl) {
+        bits.push(
+          'Something look wrong? Check the tracker directly on ' +
+            `<a href="${CFG.spotShareUrl}" target="_blank" rel="noopener">SPOT's own map</a>` +
+            ' — same device, independent of this page.'
+        );
+      }
+      if (bits.length) {
+        backup.innerHTML = bits.join('<br>');
+        backup.hidden = false;
+      }
     }
 
     initMap();
