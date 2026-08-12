@@ -7,5 +7,9 @@
   "setAt": "2026-08-12T15:41:00-06:00",
   "starts": {
     "2": "2026-08-12T15:41:00-06:00"
+  },
+  "banner": {
+    "message": "Stage 1 done — heading out for stage 2. Tracking was patchy through stage 1: the satellite messenger lost most of its messages in the gulches, so the map has gaps that are not gaps in the ride. Trying a different mount position for stage 2 and hoping it comes through cleaner.",
+    "setAt": "2026-08-12T15:52:00-06:00"
   }
 }

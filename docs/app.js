@@ -1048,6 +1048,26 @@
     $('statusbar').classList.toggle('is-stale', !!stale);
   }
 
+  /**
+   * A message from Dave, carried in override.json so it can be changed at a
+   * stage transition without a code change or a deploy of anything but data.
+   * Styled apart from the alert and the health strip: this is news, not a
+   * fault, and it should not borrow the urgency of either.
+   */
+  function renderBanner() {
+    const el = $('banner');
+    if (!el) return;
+    const b = override && override.banner;
+    if (!b || !b.message) {
+      el.hidden = true;
+      return;
+    }
+    const when = b.setAt ? Date.parse(b.setAt) : null;
+    const stamp = Number.isFinite(when) ? ` <span class="banner__at">${clockFmt.format(new Date(when))}</span>` : '';
+    el.innerHTML = `<span class="banner__k">Update</span>${stamp}<span class="banner__msg">${b.message}</span>`;
+    el.hidden = false;
+  }
+
   function note(text) {
     const el = $('notice');
     if (!el) return;
@@ -1355,6 +1375,7 @@
       // readout then has a resolved previous mileage to be continuous with.
       renderRail(fixes);
       renderStats(points, status);
+      renderBanner();
       note('');
       return;
     } catch (err) {
@@ -1368,6 +1389,7 @@
       }
     }
     renderRail([]);
+    renderBanner();
   }
 
   function init() {
