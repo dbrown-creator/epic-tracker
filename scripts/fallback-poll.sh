@@ -43,13 +43,26 @@ echo "Polling every ${INTERVAL}s$([ "$MAX_SECONDS" -gt 0 ] && echo " for up to $
 
 sync_up() {
   local stamp="$1"
-  if git diff --quiet -- docs/data/; then
+
+  if ! git diff --quiet -- docs/data/; then
+    git add docs/data/track.json docs/data/status.json
+    git commit -q -m "Fixes through ${stamp}"
+  fi
+
+  [ "$PUSH" = "0" ] && { echo "${stamp}  committed (push disabled)"; return; }
+
+  # Push whenever the branch is ahead, not only when this iteration produced a
+  # commit. A push that failed its retries used to leave the commit stranded:
+  # the next iteration saw a clean working tree, reported "no change", and
+  # never tried again — so the runner kept polling and the site kept serving
+  # data hours old. Being ahead of the remote is the condition that matters.
+  local ahead
+  ahead=$(git rev-list --count '@{u}..HEAD' 2>/dev/null || echo 0)
+  if [ "$ahead" = "0" ]; then
     echo "${stamp}  no change"
     return
   fi
-  git add docs/data/track.json docs/data/status.json
-  git commit -q -m "Fixes through ${stamp}"
-  [ "$PUSH" = "0" ] && { echo "${stamp}  committed (push disabled)"; return; }
+  [ "$ahead" -gt 1 ] && echo "  ${ahead} commits to push"
 
   for _ in 1 2 3; do
     if git push -q 2>/dev/null; then
