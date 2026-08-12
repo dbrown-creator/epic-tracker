@@ -87,7 +87,11 @@ function clockShim(speed, repeat, cycleMs) {
   window.__SIM = { now: nowSim, speed: SPEED, start: SIM0 };
   // Reload at the end of a cycle so the page picks up a fresh SIM0 and the
   // replay starts over in sync with the server.
-  if (${repeat}) setTimeout(function () { location.reload(); }, ${cycleMs});
+  // Reload just before the server's clock wraps, not after. The page clock
+  // extrapolates forever while the server clamps at the end of a cycle, so
+  // reloading late leaves the two disagreeing — which shows up as an elapsed
+  // time past the finish and a stale monotonic progress figure.
+  if (${repeat}) setTimeout(function () { location.reload(); }, __RELOAD_IN__);
 })();
 </script>
 `;
@@ -112,14 +116,14 @@ async function main() {
   );
   const htmlTemplate = rawHtml.replace(
     '<script src="app.js"></script>',
-    clockShim(SPEED, REPEAT, (WALL_SECONDS + 5) * 1000) + '<script src="app.js"></script>'
+    clockShim(SPEED, REPEAT, Math.max(5, WALL_SECONDS - 2) * 1000) + '<script src="app.js"></script>'
   );
 
   const simStart = START_MS + FROM_HOUR * 3600000;
   const realStart = Date.now();
   // With --repeat the replay cycles, holding on the finish for a few seconds
   // so the end state is readable before it starts over.
-  const CYCLE_MS = (WALL_SECONDS + 5) * 1000;
+  const CYCLE_MS = Math.max(5, WALL_SECONDS - 2) * 1000;
   const simNow = () => {
     let e = Date.now() - realStart;
     if (REPEAT) e = e % CYCLE_MS;
@@ -183,7 +187,15 @@ async function main() {
 
     if (path === '/' || path === '/live.html') {
       res.writeHead(200, { 'content-type': 'text/html', 'cache-control': 'no-store' });
-      return res.end(htmlTemplate.replace('__SIM0__', String(Math.round(simNow()))));
+      // Reload exactly when the server's clock wraps, not a fixed interval after
+      // page load — connecting mid-cycle otherwise leaves the page running on
+      // past the end of the race while the server has already started over.
+      const into = REPEAT ? (Date.now() - realStart) % CYCLE_MS : 0;
+      return res.end(
+        htmlTemplate
+          .replace('__SIM0__', String(Math.round(simNow())))
+          .replace('__RELOAD_IN__', String(Math.max(1500, CYCLE_MS - into)))
+      );
     }
 
     try {
@@ -206,8 +218,11 @@ async function main() {
 
   if (!CHECK) {
     console.log('Open that URL and watch. Ctrl-C to stop.\n');
-    // Hold the server open a little past the end so the finish is visible.
-    setTimeout(() => process.exit(0), (WALL_SECONDS + 20) * 1000);
+    // With --repeat the server must outlive every cycle; without it, hold open
+    // a little past the end so the finish stays readable. The exit timer used
+    // to fire in both cases, which killed the loop after one pass and left the
+    // page showing "Track data unavailable" against a clock still running.
+    if (!REPEAT) setTimeout(() => process.exit(0), (WALL_SECONDS + 20) * 1000);
     return;
   }
 
