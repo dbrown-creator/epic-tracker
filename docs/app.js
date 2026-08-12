@@ -553,6 +553,20 @@
           corrected: true,
         };
       }
+      // The stage he is on. Until a fix lands out on course the walk has
+      // nothing to place him with, so on the floor stage the override says he
+      // is riding it and the rail shows it running rather than pending.
+      if (n === floor && row.state === 'todo') {
+        const startIso = (override.starts || {})[String(n)];
+        const prevFinish = finishes[String(n - 1)];
+        const startedT = startIso
+          ? Date.parse(startIso) / 1000
+          : prevFinish
+            ? Date.parse(prevFinish) / 1000
+            : null;
+        return { ...row, state: 'active', startedT, corrected: true };
+      }
+
       // A finish time can be supplied for a stage the walk already closed.
       if (row.state === 'done' && finishT) {
         return {

@@ -3,6 +3,9 @@
   "finishes": {
     "1": "2026-08-12T14:30:00-06:00"
   },
-  "note": "Stage 1 finished ~14:30 MT, reported by Dave. The tracker delivered nothing between mile 22.4 (12:35) and the finish, so the page could not see it. Strava upload is blocked because the head unit is already recording stage 2.",
-  "setAt": "2026-08-12T15:15:00-06:00"
+  "note": "Stage 1 finished ~14:30 MT (reported by Dave; tracker delivered nothing between mile 22.4 at 12:35 and the finish). Stage 2 started 15:41 MT, set manually so the rail runs before the first on-course fix arrives.",
+  "setAt": "2026-08-12T15:41:00-06:00",
+  "starts": {
+    "2": "2026-08-12T15:41:00-06:00"
+  }
 }
