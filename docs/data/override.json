@@ -1,17 +1,18 @@
 {
-  "stage": 2,
+  "stage": 3,
   "finishes": {
     "1": "2026-08-12T14:30:00-06:00",
     "2": "2026-08-13T00:47:01-06:00"
   },
   "note": "Stage 1 finish is Dave's estimate — that activity has not synced off the head unit yet. Stage 2 times are from Strava: start 14:33:45, moving 6:30:00, elapsed 10:13:16 including the weather hold.",
-  "setAt": "2026-08-13T07:42:21.955Z",
+  "setAt": "2026-08-13T10:38:36.323Z",
   "starts": {
-    "2": "2026-08-12T14:33:45-06:00"
+    "2": "2026-08-12T14:33:45-06:00",
+    "3": "2026-08-13T04:38:00-06:00"
   },
   "banner": {
-    "title": "Stage 2 complete — resting before Guyot",
-    "body": "Colorado Trail done at 00:47. 42.7 miles and 5,984 feet, six and a half hours of riding — faster than the seven and a quarter planned. The extra hours were the afternoon weather hold at the house, not the pace. Resting now before stage 3, Mount Guyot, which climbs French Pass at sunrise. Tracking has been solid since the messenger was remounted: every fix arrived on cadence through the whole of stage 2.",
-    "setAt": "2026-08-13T07:42:21.955Z"
+    "title": "Out on stage 3 — French Pass at sunrise",
+    "body": "Rolling for Mount Guyot at 04:38. This is the stage the whole schedule was built around: French Pass cresting at first light, then Georgia Pass and the Continental Divide. 38.9 miles and the highest ground of the route. Stages 1 and 2 are done, 76 miles in.",
+    "setAt": "2026-08-13T10:38:36.318Z"
   }
 }
