@@ -69,8 +69,25 @@ sync_up() {
       echo "${stamp}  pushed"
       return
     fi
-    echo "  push rejected, rebasing"
-    git pull -q --rebase --autostash origin main || true
+
+    # Never rebase. Both sides rewrite the same JSON files, so a rebase hits a
+    # conflict git cannot resolve unattended, leaving the repo mid-rebase — and
+    # from then on every commit and push fails silently while the job keeps
+    # running and looking healthy. That cost four hours of live tracking.
+    #
+    # Take the remote wholesale and re-derive instead. That is safe precisely
+    # because the archive is not a merge: the poller reads whatever track.json
+    # is on disk and merges the feed into it by message id, so re-polling after
+    # resetting reproduces our points and theirs.
+    echo "  push rejected, resetting to remote and re-deriving"
+    git fetch -q origin main || true
+    git reset -q --hard origin/main || true
+    if node scripts/poll.mjs; then
+      if ! git diff --quiet -- docs/data/; then
+        git add docs/data/track.json docs/data/status.json
+        git commit -q -m "Fixes through ${stamp}"
+      fi
+    fi
   done
   echo "${stamp}  PUSH FAILED" >&2
 }
