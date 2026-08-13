@@ -540,6 +540,7 @@
       const n = row.stage.n;
       const finishIso = finishes[String(n)];
       const finishT = finishIso ? Date.parse(finishIso) / 1000 : null;
+      const startIso = (override.starts || {})[String(n)];
 
       if (n < floor && row.state !== 'done') {
         const startedT = row.startedT ?? (finishT ? finishT - row.stage.durationHours * 3600 : null);
@@ -553,11 +554,27 @@
           corrected: true,
         };
       }
+      // An explicit finish time outranks everything, including the floor. A
+      // stated finish is the strongest evidence there is — it means the stage
+      // is over, whatever the fixes did or did not show. Without this
+      // precedence a stage he has finished but is resting after would be
+      // forced back to "in progress" by the floor rule below.
+      if (finishT) {
+        const startedT = startIso ? Date.parse(startIso) / 1000 : row.startedT;
+        return {
+          ...row,
+          state: 'done',
+          startedT,
+          finishedT: finishT,
+          durationMs: startedT ? Math.max(0, (finishT - startedT) * 1000) : row.durationMs,
+          corrected: true,
+        };
+      }
+
       // The stage he is on. Until a fix lands out on course the walk has
       // nothing to place him with, so on the floor stage the override says he
       // is riding it and the rail shows it running rather than pending.
       if (n === floor && row.state === 'todo') {
-        const startIso = (override.starts || {})[String(n)];
         const prevFinish = finishes[String(n - 1)];
         const startedT = startIso
           ? Date.parse(startIso) / 1000

@@ -1,16 +1,17 @@
 {
   "stage": 2,
   "finishes": {
-    "1": "2026-08-12T14:30:00-06:00"
+    "1": "2026-08-12T14:30:00-06:00",
+    "2": "2026-08-13T00:47:01-06:00"
   },
-  "note": "Stage 1 finished ~14:30 MT (reported by Dave; tracker delivered nothing between mile 22.4 at 12:35 and the finish). Stage 2 started 15:41 MT, set manually so the rail runs before the first on-course fix arrives.",
-  "setAt": "2026-08-12T16:33:00-06:00",
+  "note": "Stage 1 finish is Dave's estimate — that activity has not synced off the head unit yet. Stage 2 times are from Strava: start 14:33:45, moving 6:30:00, elapsed 10:13:16 including the weather hold.",
+  "setAt": "2026-08-13T07:42:21.955Z",
   "starts": {
-    "2": "2026-08-12T15:41:00-06:00"
+    "2": "2026-08-12T14:33:45-06:00"
   },
   "banner": {
-    "title": "Rolling out on stage 2",
-    "body": "Stage 1 done in 5:27. Weather held him at the house through the afternoon; back on course now for the Colorado Trail. Tracking was patchy on stage 1 — the satellite messenger was mounted flat in a jersey pocket and only 39% of expected fixes got through. It has been remounted facing the sky for stage 2, so gaps should be shorter from here.",
-    "setAt": "2026-08-12T16:33:00-06:00"
+    "title": "Stage 2 complete — resting before Guyot",
+    "body": "Colorado Trail done at 00:47. 42.7 miles and 5,984 feet, six and a half hours of riding — faster than the seven and a quarter planned. The extra hours were the afternoon weather hold at the house, not the pace. Resting now before stage 3, Mount Guyot, which climbs French Pass at sunrise. Tracking has been solid since the messenger was remounted: every fix arrived on cadence through the whole of stage 2.",
+    "setAt": "2026-08-13T07:42:21.955Z"
   }
 }
