@@ -2,17 +2,18 @@
   "stage": 3,
   "finishes": {
     "1": "2026-08-12T14:30:00-06:00",
-    "2": "2026-08-13T00:47:01-06:00"
+    "2": "2026-08-13T00:47:01-06:00",
+    "3": "2026-08-13T14:04:43-06:00"
   },
-  "note": "Stage 1 finish is Dave's estimate — that activity has not synced off the head unit yet. Stage 2 times are from Strava: start 14:33:45, moving 6:30:00, elapsed 10:13:16 including the weather hold.",
-  "setAt": "2026-08-13T11:00:57.177Z",
+  "note": "Stage 2 and 3 times are measured from Strava. Stage 1 remains an estimate — that ride is still on the head unit and has not synced.",
+  "setAt": "2026-08-13T22:11:57.346Z",
   "starts": {
     "2": "2026-08-12T14:33:45-06:00",
-    "3": "2026-08-13T05:00:00-06:00"
+    "3": "2026-08-13T05:25:50-06:00"
   },
   "banner": {
-    "title": "Out on stage 3 — French Pass at sunrise",
-    "body": "Rolling for Mount Guyot at 05:00. This is the stage the whole schedule was built around: French Pass cresting at first light, then Georgia Pass and the Continental Divide. 38.9 miles and the highest ground of the route. Stages 1 and 2 are done, 76 miles in.",
-    "setAt": "2026-08-13T11:00:57.175Z"
+    "title": "Stage 3 done — French Pass at sunrise, as planned",
+    "body": "Mount Guyot finished at 14:04. 39.4 miles and 6,043 feet over French Pass, Georgia Pass and the Continental Divide — 6:38 of riding against a planned 7:30. Three stages down, 115 miles in, resting now before Aqueduct. All three stages so far have been ridden faster than the schedule; the time lost is entirely to Wednesday afternoon's weather hold.",
+    "setAt": "2026-08-13T22:11:57.345Z"
   }
 }
