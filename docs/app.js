@@ -1291,6 +1291,21 @@
    * different questions. A finished stage is a result; the one he is on is a
    * clock; the ones ahead are a forecast.
    */
+  /**
+   * The ride itself, for anyone who wants the real thing. Only on finished
+   * stages: an activity only exists once the recording has been ended and
+   * uploaded, so offering it earlier would be a dead link.
+   */
+  function stravaLink(n, state) {
+    if (state !== 'done' || !override || !override.strava) return '';
+    const id = override.strava[String(n)];
+    if (!id) return '';
+    return (
+      `<p class="stage__strava"><a href="https://www.strava.com/activities/${id}"` +
+      ` target="_blank" rel="noopener">View on Strava →</a></p>`
+    );
+  }
+
   function renderRail(fixes) {
     const list = $('stage-rail');
     list.innerHTML = '';
@@ -1341,6 +1356,7 @@
         <p class="stage__num">${s.miles} mi · ${s.gain.toLocaleString()}${s.gainEstimated ? '~' : ''} ft</p>
         ${body}
         ${s.note ? `<p class="stage__note">${s.note}</p>` : ''}
+        ${stravaLink(s.n, st.state)}
       `;
       list.appendChild(li);
     });

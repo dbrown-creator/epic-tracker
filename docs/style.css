@@ -789,3 +789,18 @@ body::before {
 }
 
 :focus-visible { outline: 2px solid var(--overprint); outline-offset: 2px; }
+
+/* Only appears on finished stages — the activity does not exist until the
+   recording has been ended and uploaded. */
+.stage__strava {
+  margin: 10px 0 0;
+  font-size: 11px;
+  letter-spacing: .04em;
+}
+.stage__strava a {
+  color: var(--overprint);
+  font-weight: 600;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(191, 59, 43, .35);
+}
+.stage__strava a:hover { border-bottom-color: var(--overprint); }
