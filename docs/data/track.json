@@ -4,7 +4,7 @@
     "description": "Brk Epic",
     "status": "ACTIVE"
   },
-  "count": 108,
+  "count": 109,
   "points": [
     {
       "id": "2482689660",
@@ -1189,6 +1189,17 @@
       "iso": "2026-08-13T23:18:39+0000",
       "lat": 39.48592,
       "lon": -106.02356,
+      "type": "TRACK",
+      "text": null,
+      "battery": "GOOD",
+      "positioned": true
+    },
+    {
+      "id": "2484119488",
+      "t": 1786663710,
+      "iso": "2026-08-13T23:28:30+0000",
+      "lat": 39.48563,
+      "lon": -106.01866,
       "type": "TRACK",
       "text": null,
       "battery": "GOOD",
