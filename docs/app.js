@@ -571,6 +571,23 @@
         };
       }
 
+      // A stated plan for a stage not yet started. The automatic projection
+      // shifts the original schedule by how far behind he is, which cannot
+      // know what he actually intends — a thirty-minute turnaround rather than
+      // a planned sleep, say. When he says what the plan is, use it.
+      const projIso = (override.projectedStarts || {})[String(n)];
+      if (row.state === 'todo' && projIso) {
+        const etaStartMs = Date.parse(projIso);
+        const projHours = (override.projectedHours || {})[String(n)];
+        return {
+          ...row,
+          etaStartMs,
+          estDurationMs: (projHours ?? row.stage.durationHours) * 3600000,
+          shifted: true,
+          corrected: true,
+        };
+      }
+
       // The stage he is on. Until a fix lands out on course the walk has
       // nothing to place him with, so on the floor stage the override says he
       // is riding it and the rail shows it running rather than pending.
