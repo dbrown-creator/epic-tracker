@@ -1,9 +1,9 @@
 {
-  "polledAt": "2026-08-14T22:01:11.813Z",
+  "polledAt": "2026-08-14T22:11:13.365Z",
   "ok": true,
   "error": null,
   "points": 197,
   "lastFixAt": 1786744343,
-  "fetched": 102,
+  "fetched": 51,
   "intervalMinutes": 10
 }
