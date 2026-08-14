@@ -1,5 +1,5 @@
 {
-  "stage": 4,
+  "stage": 5,
   "finishes": {
     "1": "2026-08-12T14:22:42-06:00",
     "2": "2026-08-13T00:47:01-06:00",
@@ -7,17 +7,18 @@
     "4": "2026-08-14T08:58:22.000Z"
   },
   "note": "Stages 1-4 all measured from Strava.",
-  "setAt": "2026-08-14T09:31:22.511Z",
+  "setAt": "2026-08-14T10:37:05.942Z",
   "starts": {
     "1": "2026-08-12T09:00:03-06:00",
     "2": "2026-08-12T14:33:45-06:00",
     "3": "2026-08-13T05:25:50-06:00",
-    "4": "2026-08-13T16:54:09-06:00"
+    "4": "2026-08-13T16:54:09-06:00",
+    "5": "2026-08-14T04:37:00-06:00"
   },
   "banner": {
-    "title": "Stage 4 done — four down, two to go",
-    "body": "Aqueduct finished at 02:58. 42.0 miles and 6,450 feet, 7:02 of riding against a planned 7:30. That is four stages out of six, 155 miles ridden, and every one of them ridden faster than the schedule called for. Wheeler and Gold Dust remain: 55 miles and the last of the climbing. Resting now.",
-    "setAt": "2026-08-14T09:27:05.914Z"
+    "title": "Out on stage 5 — Wheeler",
+    "body": "Rolling for Wheeler at 04:37. Four stages and 155 miles done. This is the shortest stage left at 24 miles, and the hardest per mile: Wheeler Pass tops out above treeline and part of it is carried rather than ridden. Gold Dust after it, and then home.",
+    "setAt": "2026-08-14T10:37:05.930Z"
   },
   "strava": {
     "1": "19731205422",
@@ -26,7 +27,6 @@
     "4": "19736042715"
   },
   "projectedStarts": {
-    "5": "2026-08-14T10:00:00.000Z",
     "6": "2026-08-14T18:15:00.000Z"
   },
   "projectedHours": {
