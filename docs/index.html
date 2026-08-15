@@ -4,10 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>David's Tracker · Breck Epic Mega Epic</title>
-<meta name="description" content="David Brown rides all six Breck Epic stage courses end to end as one continuous 216-mile individual time trial. Live satellite tracking from 9:00 AM Wednesday 12 August 2026.">
+<meta name="description" content="David Brown rode all six Breck Epic stage courses end to end as one continuous 216-mile individual time trial, finishing in 57 hours 37 minutes.">
 
 <meta property="og:title" content="David's Tracker — the Mega Epic">
-<meta property="og:description" content="Six Breck Epic stage courses, 216 miles, one continuous push. Starts 9:00 AM Wednesday 12 August.">
+<meta property="og:description" content="Six stage courses, 216 miles, 32,717 feet, one continuous clock. Finished in 57:37.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://davidsdot.com/">
 <meta property="og:image" content="https://davidsdot.com/course-map.svg">
@@ -34,6 +34,8 @@
 
   <nav class="sitenav"><a href="./" class="is-current">Home</a><a href="live.html">Live track</a><a href="schedule.html">Schedule</a><a href="history.html">Race context</a><a href="training.html">Training</a></nav>
 
+  <div id="banner" class="banner" hidden role="status"></div>
+
   <header class="titleblock">
     <div class="titleblock__main">
       <p class="eyebrow">Individual time trial · Crewed by Lindy</p>
@@ -50,21 +52,19 @@
 
   <section class="hero">
     <p class="hero__lede">
-      This is the home page for David Brown's ride of the Breck Epic Mega Epic
-      course. The individual time trial begins at <strong>9:00 AM on Wednesday,
-      12 August 2026</strong> from the <strong>Carter Park ice rink</strong> in
-      Breckenridge, Colorado.
+      David Brown rode all six Breck Epic stage courses end to end as one
+      continuous effort, finishing in <strong>57 hours 37 minutes</strong> —
+      216 miles and 32,717 feet of climbing, from 9:00 AM Wednesday 12 August
+      to 6:37 PM Friday 14 August 2026.
     </p>
     <p class="hero__note">
-      The grand depart rolls out at 8:30 AM. David starts his solo effort half an
-      hour later, at 9:00, and rides all six stage courses back to back —
-      216 miles and 34,805 feet of climbing — without stopping the clock.
+      He started half an hour behind the grand depart and rode through two
+      nights without stopping the clock, crewed by Lindy, with resupply at the
+      house the course runs past. Gold Dust — the sixth and last stage — was
+      the fastest riding of the whole effort.
     </p>
     <p class="hero__cta">
-      <!-- Deliberately not a link until the gun goes. Sending people to a
-           tracker with nothing on it is a worse first impression than telling
-           them when to come back. -->
-      <span class="button is-disabled" aria-disabled="true">Live tracking opens Wednesday 9:00 AM</span>
+      <a class="button" href="live.html">See the finished ride →</a>
       <a class="button button--ghost" id="cheer-link" href="#" hidden>Cheer him on →</a>
       <span class="hero__ctasub">Position updates roughly every 10 minutes from a SPOT&nbsp;Gen4 satellite messenger</span>
     </p>
@@ -116,6 +116,24 @@
     cheer.rel = 'noopener';
     cheer.hidden = false;
   }
+
+  // Same banner, same source file as the tracker. The landing page is the
+  // front door and most people never click through, so news belongs here too.
+  fetch('data/override.json?t=' + Date.now(), { cache: 'no-store' })
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (o) {
+      var b = o && o.banner;
+      var el = document.getElementById('banner');
+      if (!b || !el) return;
+      var title = b.title, body = b.body || b.message;
+      if (!title && !body) return;
+      el.innerHTML =
+        '<span class=banner__k>Update</span>' +
+        (title ? '<span class=banner__title>' + title + '</span>' : '') +
+        (body ? '<span class=banner__msg>' + body + '</span>' : '');
+      el.hidden = false;
+    })
+    .catch(function () { /* the banner is enrichment, never load-bearing */ });
 
   CFG.stages.forEach(function (s) {
     var li = document.createElement('li');
