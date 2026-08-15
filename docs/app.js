@@ -1139,6 +1139,35 @@
     const progressSub = $('progress-sub');
     if (!where) return;
 
+    // Once it is over, the readouts are a result rather than a position. The
+    // last fix is at the house, off the course line, so without this the
+    // finished page reports him lost — which is a poor way to end.
+    const doneMs = raceEndMs();
+    if (doneMs != null) {
+      where.textContent = 'Finished';
+      whereSub.textContent = `All six stages · ${hhmm(doneMs)}`;
+      progress.textContent = `${course.totalMiles.toFixed(1)} mi`;
+      progressSub.textContent = 'complete · 100%';
+      const plan = $('plan');
+      const planSub = $('plan-sub');
+      if (plan) {
+        const target = CFG.targetHours * 3600000;
+        const inside = doneMs <= target;
+        plan.textContent = `${hhmm(Math.abs(target - doneMs))} ${inside ? 'inside' : 'over'}`;
+        plan.classList.toggle('is-ahead', inside);
+        plan.classList.toggle('is-behind', !inside);
+        planSub.textContent = `of the ${CFG.targetHours} h target`;
+      }
+      const crew = $('crew');
+      if (crew) {
+        crew.textContent = 'Home';
+        $('crew-sub').textContent = 'Ice Rink, Breckenridge';
+      }
+      setStatusBar(hhmm(doneMs), 'Finished', `${course.totalMiles.toFixed(0)} mi`);
+      emphasiseStage(null);
+      return;
+    }
+
     if (!snap) {
       where.textContent = '—';
       whereSub.textContent = course.loaded ? 'No fix yet' : 'Course data unavailable';
