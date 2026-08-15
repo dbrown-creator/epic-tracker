@@ -1218,6 +1218,17 @@
     sub.textContent = `plan says mile ${planMile.toFixed(1)}`;
   }
 
+  /**
+   * Once he is home the clock is a result, not a timer. Returns the final
+   * elapsed span, or null while the ride is still running.
+   */
+  function raceEndMs() {
+    const iso = override && override.raceFinishedAt;
+    if (!iso) return null;
+    const t = Date.parse(iso);
+    return Number.isFinite(t) ? t - START_MS : null;
+  }
+
   function renderStats(points, status) {
     const now = Date.now();
     const fixes = points.filter((p) => p.positioned);
@@ -1252,7 +1263,7 @@
       $('fix-age').textContent = '—';
       $('fix-time').textContent =
         now < START_MS ? `Starts ${clockFmt.format(new Date(START_MS))}` : 'No data yet';
-      $('elapsed').textContent = now < START_MS ? '—' : hhmm(now - START_MS);
+      $('elapsed').textContent = now < START_MS ? '—' : hhmm(raceEndMs() ?? now - START_MS);
       $('position').textContent = '—';
       renderPings([], now);
       renderCourseReadout(null, [], '—', false);
@@ -1280,7 +1291,7 @@
       $('fix-time').textContent = at;
     }
 
-    $('elapsed').textContent = now < START_MS ? '—' : hhmm(now - START_MS);
+    $('elapsed').textContent = now < START_MS ? '—' : hhmm(raceEndMs() ?? now - START_MS);
     $('elapsed-sub').textContent = `of ${CFG.targetHours} h target`;
 
     $('position').textContent = `${last.lat.toFixed(5)}, ${last.lon.toFixed(5)}`;
