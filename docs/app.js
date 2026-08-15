@@ -1092,13 +1092,23 @@
     const el = $('banner');
     if (!el) return;
     const b = override && override.banner;
-    if (!b || !b.message) {
+    // Accepts either shape. The file moved from a single `message` to
+    // `title`/`body` mid-race and this renderer did not follow, so every
+    // banner after that silently rendered nothing — the JSON was live and
+    // correct the whole time, which is exactly why checking the data rather
+    // than the page missed it.
+    const title = b && b.title;
+    const body = b && (b.body || b.message);
+    if (!b || !(title || body)) {
       el.hidden = true;
       return;
     }
     const when = b.setAt ? Date.parse(b.setAt) : null;
     const stamp = Number.isFinite(when) ? ` <span class="banner__at">${clockFmt.format(new Date(when))}</span>` : '';
-    el.innerHTML = `<span class="banner__k">Update</span>${stamp}<span class="banner__msg">${b.message}</span>`;
+    el.innerHTML =
+      `<span class="banner__k">Update</span>${stamp}` +
+      (title ? `<span class="banner__title">${title}</span>` : '') +
+      (body ? `<span class="banner__msg">${body}</span>` : '');
     el.hidden = false;
   }
 

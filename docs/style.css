@@ -804,3 +804,13 @@ body::before {
   border-bottom: 1px solid rgba(191, 59, 43, .35);
 }
 .stage__strava a:hover { border-bottom-color: var(--overprint); }
+
+.banner__title {
+  display: block;
+  margin-top: 6px;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 1.15rem;
+  line-height: 1.25;
+}
+.banner__title + .banner__msg { margin-top: 6px; }
