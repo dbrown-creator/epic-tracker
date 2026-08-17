@@ -15,7 +15,8 @@
     "courses": "node scripts/build-courses.mjs",
     "poll": "node scripts/poll.mjs",
     "capture": "node scripts/capture.mjs",
-    "capture:loop": "node scripts/capture.mjs --loop 600"
+    "capture:loop": "node scripts/capture.mjs --loop 600",
+    "serve": "node scripts/serve.mjs"
   },
   "repository": {
     "type": "git",

@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Race replay · David's Tracker</title>
+<meta name="description" content="Replay the Mega Epic: 216 miles and 57 hours 37 minutes across the six Breck Epic stage courses.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bitter:wght@500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="sheet">
+
+  <nav class="sitenav"><a href="./">Home</a><a href="live.html">Live track</a><a href="replay.html" class="is-current">Replay</a><a href="schedule.html">Schedule</a><a href="history.html">Race context</a><a href="training.html">Training</a></nav>
+
+  <header class="titleblock">
+    <div class="titleblock__main">
+      <p class="eyebrow">Individual time trial · 12–14 August 2026</p>
+      <h1>Race replay</h1>
+      <p class="subtitle">216 miles and 57 hours 37 minutes, from <span id="r-fixes">—</span></p>
+    </div>
+  </header>
+
+  <main class="plate plate--replay">
+    <section class="mapframe" aria-label="Replay map">
+      <div id="map"></div>
+      <div class="neatline" aria-hidden="true"></div>
+    </section>
+
+    <aside class="collar" aria-label="Replay readouts">
+      <div class="readout readout--hero">
+        <p class="readout__label">Elapsed</p>
+        <p class="readout__value" id="r-elapsed">0:00</p>
+        <p class="readout__sub">of <span id="r-total">—</span> total</p>
+      </div>
+
+      <div class="readout">
+        <p class="readout__label">Clock</p>
+        <p class="readout__value readout__value--sm" id="r-clock">—</p>
+      </div>
+
+      <div class="readout readout--where">
+        <p class="readout__label">Where</p>
+        <p class="readout__value readout__value--sm" id="r-stage">—</p>
+      </div>
+
+      <div class="readout">
+        <p class="readout__label">Along course</p>
+        <p class="readout__value" id="r-mile">—</p>
+        <p class="readout__sub" id="r-pct"></p>
+      </div>
+    </aside>
+  </main>
+
+  <!-- Transport. The scrubber carries stage colours and the two nights, so
+       the shape of the ride is readable before you press play. -->
+  <section class="transport" aria-label="Replay controls">
+    <div class="transport__timeline">
+      <div class="bands" id="r-bands"></div>
+      <div class="fill" id="r-fill"></div>
+      <input type="range" id="r-scrub" min="0" max="1000" value="0" step="1" aria-label="Scrub through the race">
+    </div>
+
+    <div class="transport__row">
+      <div class="transport__buttons">
+        <button type="button" id="r-restart" aria-label="Back to the start">⏮</button>
+        <button type="button" id="r-back" aria-label="Back 30 minutes">⏪</button>
+        <button type="button" id="r-play" class="is-primary" aria-label="Play">▶</button>
+        <button type="button" id="r-fwd" aria-label="Forward 30 minutes">⏩</button>
+      </div>
+      <div class="speed" role="group" aria-label="Playback speed">
+        <button type="button" data-speed="300">5 m/s</button>
+        <button type="button" data-speed="900" class="is-active">15 m/s</button>
+        <button type="button" data-speed="1800">30 m/s</button>
+        <button type="button" data-speed="3600">1 h/s</button>
+      </div>
+    </div>
+
+    <p class="transport__note" id="r-note" hidden></p>
+    <p class="transport__hint">Space to play or pause · arrow keys to step by thirty minutes</p>
+  </section>
+
+  <footer class="margin-note">
+    <p>Positions come from a SPOT Gen4 satellite messenger, which reported 192
+    fixes across the 57 hours. Where the gap between fixes runs long — the
+    device needs clear sky, and the gulches on stage 1 swallowed most of it —
+    the dot follows the course line between the two known points rather than
+    cutting straight across. Those stretches are drawn dashed and called out
+    as estimated: they are inference, not record.</p>
+  </footer>
+
+</div>
+
+<script src="vendor/leaflet/leaflet.js"></script>
+<script src="config.js"></script>
+<script src="replay.js"></script>
+</body>
+</html>

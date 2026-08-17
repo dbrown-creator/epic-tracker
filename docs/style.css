@@ -814,3 +814,126 @@ body::before {
   line-height: 1.25;
 }
 .banner__title + .banner__msg { margin-top: 6px; }
+
+/* ---------- Replay transport ---------- */
+
+.plate--replay .mapframe { min-height: 560px; }
+
+.transport {
+  margin-top: 0;
+  padding: 16px 20px 18px;
+  border: var(--rule-heavy);
+  border-top: 0;
+  background: var(--paper);
+}
+
+/* The timeline is a data graphic before it is a control: stage colours show
+   the shape of the ride, and the shaded blocks are the two nights he rode
+   through. You can read the effort without pressing play. */
+.transport__timeline {
+  position: relative;
+  height: 34px;
+  margin-bottom: 14px;
+}
+.bands, .fill {
+  position: absolute;
+  left: 0; right: 0;
+  top: 11px;
+  height: 12px;
+  pointer-events: none;
+}
+.bands { background: var(--paper-deep); border: 1px solid rgba(110,74,38,.3); }
+.bands .band { position: absolute; top: 0; height: 100%; opacity: .85; }
+.bands .night {
+  position: absolute; top: 0; height: 100%;
+  background: repeating-linear-gradient(45deg, rgba(42,38,34,.20) 0 3px, transparent 3px 6px);
+}
+.fill {
+  right: auto;
+  background: rgba(191,59,43,.16);
+  border-right: 2px solid var(--overprint);
+}
+
+#r-scrub {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  margin: 0;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+}
+#r-scrub::-webkit-slider-thumb {
+  appearance: none;
+  width: 15px; height: 30px;
+  background: var(--overprint);
+  border: 2px solid var(--paper);
+  cursor: grab;
+}
+#r-scrub::-moz-range-thumb {
+  width: 15px; height: 30px;
+  background: var(--overprint);
+  border: 2px solid var(--paper);
+  border-radius: 0;
+  cursor: grab;
+}
+#r-scrub:focus-visible { outline: 2px solid var(--overprint); outline-offset: 3px; }
+
+.transport__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.transport__buttons { display: flex; gap: 6px; }
+.transport__buttons button {
+  appearance: none;
+  min-width: 42px;
+  padding: 9px 12px;
+  border: 1px solid var(--ink);
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 13px;
+  cursor: pointer;
+}
+.transport__buttons button:hover { background: var(--paper-deep); }
+.transport__buttons .is-primary {
+  min-width: 58px;
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 15px;
+}
+
+.speed { display: flex; border: 1px solid var(--ink); }
+.speed button {
+  appearance: none;
+  border: 0;
+  border-left: 1px solid rgba(42,38,34,.3);
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--data);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .08em;
+  padding: 8px 10px;
+  cursor: pointer;
+}
+.speed button:first-child { border-left: 0; }
+.speed button.is-active { background: var(--ink); color: var(--paper); }
+
+.transport__note {
+  margin: 12px 0 0;
+  padding: 8px 12px;
+  border-left: 3px solid var(--contour);
+  background: rgba(162,112,63,.10);
+  font-size: 12px;
+  color: var(--contour-deep);
+}
+.transport__hint { margin: 10px 0 0; font-size: 11px; color: var(--muted); }
+
+@media (max-width: 900px) {
+  .plate--replay .mapframe { min-height: 48vh; }
+  .transport__row { justify-content: center; }
+  .speed button { padding: 8px 8px; font-size: 9px; }
+}
